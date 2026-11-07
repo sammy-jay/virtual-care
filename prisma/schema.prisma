@@ -1,0 +1,570 @@
+// Virtual Care Platform — MongoDB schema. See PLAN.md §6.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Identity ────────────────────────────────────────────────────────────────
+
+enum Role {
+  PATIENT
+  DOCTOR
+  STAFF
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  passwordHash  String
+  name          String
+  phone         String?
+  role          Role      @default(PATIENT)
+  timeZone      String    @default("Africa/Lagos")
+  emailVerified DateTime?
+  failedLogins  Int       @default(0)
+  lockedUntil   DateTime?
+  totpSecret    String?
+  totpEnabled   Boolean   @default(false)
+  consentAt     DateTime?
+  notifyPrefs   NotifyPrefs?
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions       Session[]
+  tokens         AuthToken[]
+  profile        PatientProfile?
+  memberships    Membership[]
+  appointments   Appointment[]   @relation("PatientAppointments")
+  carePlans      CarePlan[]
+  payments       Payment[]
+  paymentMethods PaymentMethod[]
+  notifications  Notification[]
+  measurements   Measurement[]
+  conversations  Conversation[]
+  dataRequests   DataRequest[]
+  messages       Message[]       @relation("MessageSender")
+}
+
+type NotifyPrefs {
+  visitReminders Boolean @default(true)
+  newMessages    Boolean @default(true)
+  carePlans      Boolean @default(true)
+  productNews    Boolean @default(false)
+}
+
+model Session {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  tokenHash  String    @unique
+  userId     String    @db.ObjectId
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent  String?
+  device     String?
+  city       String?
+  remember   Boolean   @default(false)
+  expiresAt  DateTime
+  lastSeenAt DateTime  @default(now())
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
+enum TokenPurpose {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  TWO_FACTOR
+}
+
+model AuthToken {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String       @db.ObjectId
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose   TokenPurpose
+  tokenHash String       @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime     @default(now())
+
+  @@index([userId, purpose])
+}
+
+// ─── Patient ─────────────────────────────────────────────────────────────────
+
+type EmergencyContact {
+  name  String?
+  phone String?
+  relation String?
+}
+
+model PatientProfile {
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String            @unique @db.ObjectId
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth      DateTime?
+  sex              String?
+  city             String?
+  region           String?
+  medications      String?
+  allergies        String?
+  conditions       String?
+  goals            String?
+  emergencyContact EmergencyContact?
+  goalWeightKg     Float?
+  updatedAt        DateTime          @updatedAt
+}
+
+enum MeasurementKind {
+  WEIGHT
+  BLOOD_PRESSURE
+  WALK_DAYS
+}
+
+model Measurement {
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  patientId String          @db.ObjectId
+  patient   User            @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  kind      MeasurementKind
+  value     Float?
+  systolic  Int?
+  diastolic Int?
+  takenAt   DateTime        @default(now())
+
+  @@index([patientId, kind, takenAt])
+}
+
+// ─── Practice configuration ──────────────────────────────────────────────────
+
+model Practice {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  doctorName          String
+  doctorShortName     String
+  timeZone            String   @default("America/Chicago")
+  noticeHours         Int      @default(12)
+  bufferMinutes       Int      @default(15)
+  cancelHours         Int      @default(12)
+  messagingWindowDays Int      @default(14)
+  roomOpensMinBefore  Int      @default(15)
+  roomClosesMinAfter  Int      @default(60)
+  bookingPublished    Boolean  @default(false)
+  payoutBank          String?
+  payoutLast4         String?
+  payoutSchedule      String?  @default("Weekly")
+  ngnPerUsd           Int      @default(1500)
+  updatedAt           DateTime @updatedAt
+}
+
+model VisitType {
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  slug               String        @unique
+  name               String
+  durationMin        Int
+  priceCents         Int
+  memberPriceCents   Int?
+  description        String?
+  tagline            String?
+  alwaysFree         Boolean       @default(false)
+  requiresPriorVisit Boolean       @default(false)
+  sortOrder          Int           @default(0)
+  active             Boolean       @default(true)
+  appointments       Appointment[]
+}
+
+model Plan {
+  id                    String       @id @default(auto()) @map("_id") @db.ObjectId
+  slug                  String       @unique
+  name                  String
+  tagline               String?
+  monthlyPriceCents     Int
+  monthlyPriceNgn       Int
+  discountPct           Int
+  includedVisits        Int          @default(0)
+  includedVisitTypeIds  String[]     @db.ObjectId
+  includedLabel         String?
+  maxFamilyMembers      Int          @default(1)
+  features              String[]
+  popular               Boolean      @default(false)
+  sortOrder             Int          @default(0)
+  active                Boolean      @default(true)
+  memberships           Membership[]
+}
+
+enum LicenseStatus {
+  ACTIVE
+  BLOCKED
+}
+
+model License {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  regionCode  String        @unique
+  regionName  String
+  credential  String?
+  numberMask  String?
+  renewsAt    DateTime?
+  status      LicenseStatus @default(ACTIVE)
+}
+
+model AvailabilityWindow {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  weekday      Int // 0 = Sunday, in practice time zone
+  startMin     Int // minutes after midnight, practice time zone
+  endMin       Int
+  visitTypeIds String[] @db.ObjectId // empty = all
+}
+
+model TimeOff {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  startAt DateTime
+  endAt   DateTime
+  note    String?
+}
+
+// ─── Membership & billing ────────────────────────────────────────────────────
+
+enum MembershipStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum Currency {
+  USD
+  NGN
+}
+
+model Membership {
+  id                 String           @id @default(auto()) @map("_id") @db.ObjectId
+  patientId          String           @db.ObjectId
+  patient            User             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  planId             String           @db.ObjectId
+  plan               Plan             @relation(fields: [planId], references: [id])
+  status             MembershipStatus @default(ACTIVE)
+  currency           Currency         @default(USD)
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean          @default(false)
+  graceUntil         DateTime?
+  paymentMethodId    String?          @db.ObjectId
+  providerRef        String?
+  createdAt          DateTime         @default(now())
+  canceledAt         DateTime?
+  appointments       Appointment[]
+
+  @@index([patientId, status])
+}
+
+model PaymentMethod {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand       String
+  last4       String
+  expMonth    Int
+  expYear     Int
+  country     String   @default("US")
+  isDefault   Boolean  @default(false)
+  provider    String   @default("mock")
+  providerRef String?
+  createdAt   DateTime @default(now())
+  payments    Payment[]
+}
+
+enum PaymentKind {
+  VISIT
+  MEMBERSHIP
+  PRORATION
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FREE
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+model Payment {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  patientId       String         @db.ObjectId
+  patient         User           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  kind            PaymentKind
+  status          PaymentStatus
+  amountCents     Int
+  currency        Currency       @default(USD)
+  description     String
+  note            String?
+  receiptNo       String         @unique
+  paymentMethodId String?        @db.ObjectId
+  paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  provider        String         @default("mock")
+  providerRef     String?
+  failureReason   String?
+  refundedCents   Int            @default(0)
+  appointmentId   String?        @db.ObjectId
+  membershipId    String?        @db.ObjectId
+  createdAt       DateTime       @default(now())
+  refunds         Refund[]
+
+  @@index([patientId, createdAt])
+}
+
+model Refund {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  paymentId   String   @db.ObjectId
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  amountCents Int
+  reason      String
+  reference   String   @unique
+  createdAt   DateTime @default(now())
+}
+
+// ─── Visits ──────────────────────────────────────────────────────────────────
+
+enum AppointmentStatus {
+  PENDING_PAYMENT
+  SCHEDULED
+  COMPLETED
+  CANCELED
+  NO_SHOW
+}
+
+enum PricingReason {
+  FREE
+  INCLUDED
+  MEMBER_RATE
+  STANDARD
+}
+
+model Appointment {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  patientId       String?           @db.ObjectId
+  patient         User?             @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
+  prospectName    String?
+  visitTypeId     String            @db.ObjectId
+  visitType       VisitType         @relation(fields: [visitTypeId], references: [id])
+  startsAt        DateTime
+  endsAt          DateTime
+  status          AppointmentStatus @default(SCHEDULED)
+  reason          String?
+  region          String
+  consentAt       DateTime
+  patientTimeZone String
+  priceCents      Int
+  standardCents   Int
+  currency        Currency          @default(USD)
+  pricingReason   PricingReason
+  usesAllowance   Boolean           @default(false)
+  membershipId    String?           @db.ObjectId
+  membership      Membership?       @relation(fields: [membershipId], references: [id])
+  paymentId       String?           @db.ObjectId
+  waitingSince    DateTime?
+  admittedAt      DateTime?
+  endedAt         DateTime?
+  noShowAt        DateTime?
+  canceledAt      DateTime?
+  canceledBy      Role?
+  roomName        String?
+  backupUrl       String?
+  reminder24Sent  Boolean           @default(false)
+  reminder1Sent   Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+
+  note     VisitNote?
+  carePlan CarePlan?
+  feedback Feedback?
+
+  @@index([patientId, startsAt])
+  @@index([startsAt, status])
+}
+
+model VisitNote {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  appointmentId String      @unique @db.ObjectId
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  subjective    String?
+  objective     String?
+  assessment    String?
+  plan          String?
+  quickNotes    String?
+  followUpWeeks Int?
+  updatedAt     DateTime    @updatedAt
+}
+
+enum CarePlanStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model CarePlan {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  patientId     String         @db.ObjectId
+  patient       User           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointmentId String         @unique @db.ObjectId
+  appointment   Appointment    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  status        CarePlanStatus @default(DRAFT)
+  summary       String         @default("")
+  goals         String[]
+  nutrition     String[]
+  movement      String[]
+  nextSteps     String[]
+  publishedAt   DateTime?
+  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime       @default(now())
+}
+
+model Feedback {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  appointmentId String      @unique @db.ObjectId
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  rating        Int
+  comment       String?
+  createdAt     DateTime    @default(now())
+}
+
+// ─── Messaging ───────────────────────────────────────────────────────────────
+
+model Conversation {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  patientId     String    @db.ObjectId
+  patient       User      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title         String    @default("Dr. Oparaji")
+  kind          String    @default("doctor") // doctor | care_team
+  lastMessageAt DateTime  @default(now())
+  messages      Message[]
+
+  @@index([patientId])
+}
+
+enum MessageKind {
+  TEXT
+  CARE_PLAN
+  SYSTEM
+}
+
+model Message {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String       @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String?      @db.ObjectId
+  sender         User?        @relation("MessageSender", fields: [senderId], references: [id])
+  fromDoctor     Boolean
+  kind           MessageKind  @default(TEXT)
+  body           String
+  carePlanId     String?      @db.ObjectId
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model MessageTemplate {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  body      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+enum InquiryStatus {
+  NEW
+  REPLIED
+  CLOSED
+}
+
+type InquiryReply {
+  body   String
+  sentAt DateTime
+}
+
+model Inquiry {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  topic     String
+  body      String
+  status    InquiryStatus  @default(NEW)
+  replies   InquiryReply[]
+  createdAt DateTime       @default(now())
+}
+
+// ─── Notifications, compliance ───────────────────────────────────────────────
+
+enum NotificationCategory {
+  VISITS
+  MESSAGES
+  BILLING
+  PAYMENTS
+  INQUIRIES
+  CARE_PLANS
+}
+
+model Notification {
+  id        String               @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String               @db.ObjectId
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  NotificationCategory
+  title     String
+  body      String
+  amount    String?
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime             @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model AccessLog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  actorId    String?  @db.ObjectId
+  actorLabel String
+  action     String
+  patientId  String?  @db.ObjectId
+  location   String?
+  createdAt  DateTime @default(now())
+
+  @@index([patientId, createdAt])
+  @@index([createdAt])
+}
+
+enum DataRequestKind {
+  EXPORT
+  DELETE
+}
+
+enum DataRequestStatus {
+  OPEN
+  COMPLETED
+  DECLINED
+}
+
+model DataRequest {
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
+  patientId        String            @db.ObjectId
+  patient          User              @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  kind             DataRequestKind
+  status           DataRequestStatus @default(OPEN)
+  scope            String            @default("Visits, care plans, messages, receipts")
+  format           String            @default("ZIP with PDF and CSV")
+  identityVerified Boolean           @default(true)
+  declineReason    String?
+  dueAt            DateTime
+  completedAt      DateTime?
+  createdAt        DateTime          @default(now())
+}
+
+model EmailOutbox {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  to        String
+  subject   String
+  text      String
+  html      String
+  template  String
+  sentAt    DateTime?
+  error     String?
+  createdAt DateTime @default(now())
+}
