@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mobile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}*{box-sizing:border-box}
+.r{font-family:'Manrope',sans-serif;color:#0C111B;background:#FFFFFF;overflow:hidden}
+.h{font-family:'Newsreader',serif;font-weight:600;letter-spacing:-.01em;margin:0;color:#0C111B}
+.btn{display:inline-block;padding:12px 22px;border-radius:10px;background:#17604B;color:#fff;font-weight:700;font-size:14px;border:0;text-decoration:none;font-family:inherit}
+.b2{background:transparent;color:#17604B;border:1.5px solid #17604B}
+.cd{background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:22px;box-shadow:0 1px 2px rgba(12,17,27,.04)}
+.k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#5B6270;font-weight:700}
+.m{color:#6B7280;font-size:13px}.f{display:flex}.g{gap:16px}.c{flex-direction:column}.sp{justify-content:space-between}.ac{align-items:center}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid #E5E7EB;background:#fff}
+.em{background:#FCF1D9;color:#5B4210;font-size:12px;text-align:center;padding:8px}
+.side{width:244px;background:#fff;border-right:1px solid #E5E7EB;color:#4B5563;padding:28px 18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.side a{color:#4B5563;padding:10px 12px;border-radius:8px;text-decoration:none}.side a.btn{color:#fff}.side a.on{background:#E7F2ED;color:#17604B;font-weight:700}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;background:#F1F2F4;color:#0C111B}
+.pt{background:#F1F2F4;border:1.5px dashed #B8BDC7;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#6B7280;font-size:12px}
+.slot{padding:10px 0;text-align:center;border:1px solid #E5E7EB;border-radius:8px;font-size:13px;background:#fff}.slot.on{background:#17604B;color:#fff;border-color:#17604B}
+.ln{height:1px;background:#E5E7EB;margin:12px 0}.rw{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #EEF0F3;font-size:14px}
+.w{background:#fff;border:1.5px solid #9AA3A0;border-radius:6px}.wl{height:8px;background:#C9CECC;border-radius:4px}.in{background:#fff;border:1px solid #D5D9E0;border-radius:8px;padding:12px 14px;font-size:14px;color:#6B7280;min-height:44px;margin-top:6px}
+.tb{width:100%;border-collapse:collapse;font-size:13px}.tb th{text-align:left;color:#6B7280;font-weight:500;padding:10px 12px;border-bottom:1px solid #E5E7EB;font-size:12px}.tb td{padding:12px;border-bottom:1px solid #EEF0F3}
+.ok{background:#DCF3E4;color:#14532D}.wn{background:#FDF0D5;color:#7A4B07}
+.tab{padding:10px 16px;font-size:14px;color:#6B7280}.tab.on{color:#17604B;font-weight:700;border-bottom:2px solid #17604B}
+.bub{max-width:70%;padding:12px 14px;border-radius:14px;font-size:14px;line-height:1.5}
+.pg{background:#F7F6F1}
+.chip{display:inline-block;padding:7px 12px;border:1px solid #D5D9E0;border-radius:99px;font-size:13px;background:#fff}.chip.on{background:#17604B;color:#fff;border-color:#17604B}
+.tbar{display:flex;align-items:center;justify-content:space-between;padding:12px 44px;background:#fff;border-bottom:1px solid #E5E7EB;gap:16px}.av{width:34px;height:34px;border-radius:50%;background:#17604B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.in.err{border-color:#C0392B;background:#FFFAF9}.in.fc{border-color:#17604B;box-shadow:0 0 0 3px rgba(23,96,75,.16);color:#0C111B}.in.dis{background:#F1F2F4;color:#6B7280}
+.er{color:#C0392B;font-size:12px;margin-top:6px;display:flex;gap:5px;align-items:center}
+.bn{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:10px;font-size:13px}.bn.err{background:#FDECEA;color:#8A1F11}.bn.ok{background:#E3F4EA;color:#14532D}.bn.wn{background:#FDF0D5;color:#7A4B07}.bn.inf{background:#F1F2F4;color:#374151}
+.icb{width:56px;height:56px;border-radius:50%;background:#F1F2F4;display:flex;align-items:center;justify-content:center;color:#0C111B}
+.side a{display:flex;align-items:center;gap:10px}.tb tr:hover td{background:#FAFAFB}
+.dim{opacity:.4;pointer-events:none}.lg{width:40px;height:40px;border-radius:50%;background:#17604B;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Newsreader',serif;font-weight:600;font-size:15px;flex:none}.gl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6B7280;padding:16px 12px 6px}.nb{margin-left:auto;background:#17604B;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}a{color:inherit;text-decoration:none}
+.wb{background:#E4E7E6;border-radius:4px}
+</style>
+</helmet>
+<div class="r" style="width:920px;height:884px">
+<div class="pg f g" style="height:100%;padding:20px;justify-content:center"><div style="width:390px;height:844px;border-radius:36px;border:1px solid #D5D9E0;overflow:hidden;background:#fff;position:relative"><div style="background:#17604B;color:#fff;padding:40px 24px 32px;height:520px"><div class="em" style="margin:-40px -24px 28px">Emergency: 911 · 112 / 767</div><div class="h" style="color:#0C111B;font-size:18px">Dr. Oparaji · Virtual Care</div><h1 class="h" style="color:#fff;font-size:42px;line-height:1.05;margin:40px 0 14px">Care rooted in faith, culture and family.</h1><p style="color:#C9CED8;font-size:15px">Virtual visits from Houston to Lagos.</p><a class="btn " href="Sign-Up-h614.dc.html" style="background:#fff;color:#0C111B;display:block;text-align:center;margin-top:24px">Book a free intro call</a></div><div style="padding:24px"><div class="k">How it works</div><div class="rw"><span><b>1  Create account</b></span><span></span></div><div class="rw"><span><b>2  Book in your time zone</b></span><span></span></div><div class="rw"><span><b>3  Meet and get a care plan</b></span><span></span></div></div></div><div style="width:390px;height:844px;border-radius:36px;border:1px solid #D5D9E0;overflow:hidden;background:#fff;position:relative"><div style="padding:44px 20px 20px" class="f c g"><div class="k">Book a visit</div><h2 class="h" style="font-size:28px">Choose a time</h2><div class="m">Times in WAT (Lagos)</div><div class="f g"><span class="chip on">Wed 14</span><span class="chip">Thu 15</span><span class="chip">Fri 16</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="slot">5:00 PM</div><div class="slot">5:30 PM</div><div class="slot">6:00 PM</div><div class="slot on">7:00 PM</div></div><label class="m" style="display:block;">Where are you right now?<div class="in">Texas, USA ▾</div></label><div class="m">☐ I accept the telehealth consent</div><div class="cd" style="padding:14px"><div class="rw" style="border:0;padding:0"><span>Follow-up · 30 min</span><b>Included</b></div></div><a class="btn " href="Booking-Confirmed-0cbm.dc.html" style="text-align:center">Confirm booking</a></div></div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":920,"height":884}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

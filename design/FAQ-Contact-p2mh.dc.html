@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FAQ</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="width:100%;min-height:100vh;display:flex;flex-direction:column;background:#fff;color:#0C111B;font-family:'Manrope',system-ui,sans-serif;font-size:17px;line-height:1.55">
+<div style="background:#FCF1D9;color:#5B4210;font-size:13px;text-align:center;padding:9px 24px;border-bottom:1px solid #F1DFAF">Virtual care is not for emergencies. If you think you are having one, call 911 (US) or 112 (Nigeria).</div><div style="background:#E7F2ED;color:#0C111B;position:relative;overflow:hidden"><div aria-hidden="true" style="position:absolute;right:-60px;top:30px;width:560px;height:520px;pointer-events:none"><div style="position:absolute;right:40px;top:0;width:400px;height:400px;border-radius:50%;background:#E7F2ED"></div><div style="position:absolute;right:300px;top:260px;width:210px;height:210px;border-radius:50%;background:#E6A93B;opacity:.9"></div><div style="position:absolute;right:20px;top:330px;width:140px;height:140px;border-radius:50%;background:#E2674A"></div><div style="position:absolute;right:230px;top:60px;width:90px;height:90px;border-radius:50%;border:10px solid #3E6FD1;box-sizing:border-box"></div></div><div style="position:relative;max-width:1240px;width:100%;box-sizing:border-box;margin:0 auto;padding:0 40px"><nav style="display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:26px 0">
+<a href="Home-862h.dc.html" style="display:flex;align-items:center;gap:12px"><span style="width:42px;height:42px;border-radius:13px;background:#17604B;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Newsreader',serif;font-size:19px;font-weight:500">NO</span><span style="line-height:1.15"><span style="display:block;font-family:'Newsreader',serif;font-size:19px;color:#0C111B">Dr. Nneoma Oparaji</span><span style="display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#17604B;font-weight:700">Virtual care</span></span></a>
+<div style="display:flex;gap:34px;font-size:15px;font-weight:500;color:#3B4252;flex-wrap:wrap"><a href="Services-it8f.dc.html" style="">Services</a><a href="Membership-Plans-atfx.dc.html" style="">Membership</a><a href="About-wpz1.dc.html" style="">About</a><a href="FAQ-Contact-p2mh.dc.html" style="color:#0C111B;font-weight:700;border-bottom:2px solid #17604B;padding-bottom:4px">FAQ</a><a href="Contact-r8m3.dc.html" style="">Contact</a></div>
+<div style="display:flex;gap:10px;align-items:center"><a href="Sign-In-Reset-lfac.dc.html" style="padding:11px 18px;font-size:14px;font-weight:600;color:#0C111B;border-radius:999px;border:1.5px solid #0C111B">Sign in</a><a href="Sign-Up-h614.dc.html" style="padding:11px 20px;font-size:14px;font-weight:700;background:#17604B;color:#fff;border-radius:999px">Get started</a></div></nav>
+<div style="padding:60px 0 96px;max-width:760px"><div style="display:inline-flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#17604B"><span style="width:28px;height:3px;border-radius:2px;background:#E6A93B"></span>FAQ</div><h1 style="margin:18px 0 0;font-family:'Newsreader',serif;font-weight:400;font-size:72px;line-height:1;letter-spacing:-.025em">Questions, answered.</h1><p style="margin:24px 0 0;max-width:560px;font-size:19px;color:#3B4252">Everything to know before your first visit.</p></div></div></div><div style="max-width:1240px;width:100%;box-sizing:border-box;margin:0 auto;padding:80px 40px 110px"><div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="5"><button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.name }}</button></sc-for></div>
+<div style="max-width:900px">
+<sc-for list="{{faqs}}" as="f" hint-placeholder-count="4">
+<div style="border-bottom:1px solid #E6E8EC">
+<button onClick="{{ f.pick }}" aria-expanded="{{ f.open }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;text-align:left;background:none;border:0;padding:26px 0;cursor:pointer;font-family:'Newsreader',serif;font-size:26px;color:#0C111B">{{ f.q }}<span style="{{ f.iconStyle }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span></button>
+<div style="{{ f.bodyStyle }}">{{ f.a }}</div></div></sc-for></div><div style="margin-top:72px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px;background:#FCF1D9;border-radius:28px;padding:40px 44px"><div><h3 style="margin:0;font-family:'Newsreader',serif;font-weight:500;font-size:32px">Did not find your answer?</h3><p style="margin:8px 0 0;color:#5B4210">Send us a message — we reply within 1 business day.</p></div><div style="display:flex;gap:12px;flex-wrap:wrap"><a href="Contact-r8m3.dc.html" style="display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:999px;font-weight:700;font-size:16px;background:#17604B;color:#fff">Contact us</a><a href="Intro-Call-Booking-2wat.dc.html" style="display:inline-flex;align-items:center;gap:10px;padding:16px 28px;border-radius:999px;font-weight:700;font-size:16px;border:1.5px solid #0C111B;color:#0C111B">Book an intro call</a></div></div></div><div style="flex:1;background:#E7F2ED;color:#33473F;font-size:14px;display:flex;flex-direction:column"><div style="max-width:1240px;width:100%;margin:0 auto;padding:56px 40px;display:flex;flex-wrap:wrap;gap:40px;justify-content:space-between;box-sizing:border-box"><div style="max-width:340px"><div style="font-family:'Newsreader',serif;font-size:22px;color:#0C111B">Dr. Nneoma Oparaji</div><p style="margin:10px 0 0">Faith-centered, culturally rooted virtual care for African families.</p></div><div style="display:flex;gap:56px;flex-wrap:wrap"><div style="display:flex;flex-direction:column;gap:10px"><span style="color:#17604B;font-weight:800">Practice</span><a href="Services-it8f.dc.html">Services</a><a href="Membership-Plans-atfx.dc.html">Membership</a><a href="About-wpz1.dc.html">About</a><a href="FAQ-Contact-p2mh.dc.html">FAQ</a><a href="Contact-r8m3.dc.html">Contact</a></div><div style="display:flex;flex-direction:column;gap:10px"><span style="color:#17604B;font-weight:800">Legal</span><a href="Privacy-Policy-gxwf.dc.html">Privacy</a><a href="Terms-of-Service-zqoi.dc.html">Terms</a><a href="Telehealth-Consent-ez3s.dc.html">Telehealth consent</a></div></div></div><div style="max-width:1240px;width:100%;margin:0 auto;padding:22px 40px;border-top:1px solid #C9DDD3;font-size:13px;color:#4F6A5F;box-sizing:border-box">Information on this site is educational and is not a substitute for medical advice.</div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2400}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { cat: 'All', open: 0 }; }
+  renderVals() {
+    const QA = [
+      ['Getting started', 'Is this service for emergencies?', 'No. If you think you are having a medical emergency, call 911 in the US or 112 in Nigeria. Messages and visits are not monitored for urgent care.'],
+      ['Getting started', 'What does the intro call cost?', 'It is free, 15 minutes, and a good way to see whether the practice is right for you before an initial consultation.'],
+      ['Getting started', 'Where are you licensed to see patients?', 'Dr. Oparaji sees patients located in Texas, USA and in Nigeria. You confirm where you are when you book, because the rules depend on your location.'],
+      ['Visits', 'How do video visits work?', 'You get a private link in your portal. It opens in your browser on a phone or laptop — nothing to install. You can test your camera and microphone before you join.'],
+      ['Visits', 'Which time zone are times shown in?', 'Your own. Houston is the practice’s time zone, and we show both when they differ, for example 7:00 PM in Lagos and 1:00 PM in Houston.'],
+      ['Visits', 'Can I cancel or reschedule?', 'Yes, free of charge up to 12 hours before your visit. Memberships can be paused or cancelled from your account at any time.'],
+      ['Billing', 'Can I pay in naira?', 'Yes. Nigerian patients can pay in naira by card or bank transfer. The amount is shown before you confirm.'],
+      ['Billing', 'What does a membership include?', 'Secure messaging, member pricing and, on higher plans, visits included each month. See the Membership page for details.'],
+      ['Privacy', 'How is my information protected?', 'Your health profile, messages and care plans are encrypted and visible only to you and Dr. Oparaji. Every access to your record is logged.'],
+      ['Privacy', 'Are my visits recorded?', 'No. Visits are private rooms and are not recorded.'],
+    ];
+    const cats = ['All', 'Getting started', 'Visits', 'Billing', 'Privacy'];
+    const s = this.state;
+    const list = QA.filter((x) => s.cat === 'All' || x[0] === s.cat);
+    return {
+      cats: cats.map((n) => ({ name: n, pick: () => this.setState({ cat: n, open: 0 }),
+        style: 'font-family:inherit;font-size:14.5px;font-weight:700;padding:11px 20px;border-radius:999px;cursor:pointer;' + (n === s.cat ? 'background:#17604B;color:#fff;border:1.5px solid #17604B' : 'background:#fff;color:#0C111B;border:1.5px solid #D5D9E0') })),
+      faqs: list.map((x, i) => ({
+        q: x[1], a: x[2], open: i === s.open,
+        iconStyle: 'flex:none;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .2s;' + (i === s.open ? 'transform:rotate(45deg);background:#17604B;color:#fff;border:1px solid #17604B' : 'border:1px solid #D5D9E0'),
+        bodyStyle: i === s.open ? 'padding:0 64px 28px 0;color:#4A5262;font-size:16.5px' : 'display:none',
+        pick: () => this.setState({ open: i === s.open ? -1 : i }),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>
