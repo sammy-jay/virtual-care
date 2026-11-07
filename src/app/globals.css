@@ -1,26 +1,119 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design tokens — 01.1 Style Guide. */
+@theme {
+  --color-forest: #17604b;
+  --color-forest-deep: #0f4636;
+  --color-ink: #0c111b;
+  --color-gold: #e6a93b;
+  --color-coral: #e2674a;
+  --color-sky: #3e6fd1;
+
+  --color-sage: #e7f2ed;
+  --color-sage-line: #cfe2d8;
+  --color-sage-ink: #33473f;
+  --color-sand: #fbf5ea;
+  --color-gold-tint: #fcf1d9;
+  --color-gold-line: #f1dfaf;
+  --color-gold-ink: #8a5a06;
+  --color-coral-tint: #fce9e3;
+  --color-coral-ink: #b8442a;
+  --color-sky-tint: #e8eefb;
+  --color-sky-ink: #2a4f9e;
+
+  --color-canvas: #f7f6f1;
+  --color-line: #e5e7eb;
+  --color-line-soft: #f1f2f4;
+  --color-field: #d5d9e0;
+  --color-muted: #6b7280;
+  --color-body: #4b5563;
+  --color-body-2: #3b4252;
+  --color-success: #14532d;
+  --color-warning: #7a4b07;
+  --color-danger: #c0392b;
+
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  --font-display: var(--font-newsreader), Georgia, serif;
+
+  --radius-card: 20px;
+  --radius-field: 12px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: #fff;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--color-forest) 45%, transparent);
+    outline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-forest);
+  }
+  .h-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    padding: 24px;
+  }
+  .field {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 15px;
+    border-radius: var(--radius-field);
+    border: 1.5px solid var(--color-field);
+    background: #fff;
+    font-size: 15px;
+    color: var(--color-ink);
+    font-family: inherit;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-forest);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-forest) 18%, transparent);
+  }
+  .field[aria-invalid="true"] {
+    border-color: var(--color-danger);
+    background: #fff8f6;
+  }
+  .field:disabled {
+    background: var(--color-canvas);
+    color: var(--color-muted);
+  }
+  .label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
 }

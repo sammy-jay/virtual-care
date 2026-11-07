@@ -1,26 +1,57 @@
 {
-  "name": "app-tmp",
+  "name": "virtual-care-platform",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "prisma db push",
+    "db:seed": "tsx --env-file-if-exists=.env prisma/seed.ts",
+    "db:generate": "prisma generate",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "prisma generate",
+    "db:local": "node scripts/local-mongo.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "bcryptjs": "^3.0.3",
+    "date-fns": "^4.4.0",
+    "date-fns-tz": "^3.2.0",
     "next": "16.4.5",
+    "otplib": "^13.6.0",
+    "prisma": "^6.19.3",
+    "qrcode": "^1.5.4",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/turbopack": "^4",
-    "@types/node": "^20",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^24.19.2",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.5",
+    "mongodb-memory-server": "^11.3.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^5.1.0"
+  },
+  "allowScripts": {
+    "prisma@6.19.3": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true
+  },
+  "prisma": {
+    "seed": "tsx --env-file-if-exists=.env prisma/seed.ts"
   }
 }
