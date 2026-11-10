@@ -2,17 +2,21 @@ import type { Metadata, Viewport } from "next";
 import { Manrope, Newsreader } from "next/font/google";
 import "./globals.css";
 
+// Variable fonts: one file per family instead of a file per weight.
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
+// The boards load Newsreader with its optical-size axis (opsz 6–72). Without it every
+// heading uses the 16px text cut, which looks heavy and loose at display sizes.
 const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],
-  weight: ["400", "500"],
   style: ["normal", "italic"],
+  axes: ["opsz"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
