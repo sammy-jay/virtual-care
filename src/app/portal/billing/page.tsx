@@ -44,7 +44,7 @@ export default async function BillingPage() {
               <b className="block text-[15px]">{p.description}</b>
               <span className="text-[13px] text-muted">{p.note ?? (p.paymentMethod ? `Card ending ${p.paymentMethod.last4}` : "")}</span>
             </div>
-            <span className="font-bold">{money(p.amountCents, p.currency)}</span>
+            <span className="num font-bold">{money(p.amountCents, p.currency)}</span>
             <StatusTag status={p.status} />
             <Link href={p.status === "REFUNDED" && p.refunds[0] ? `/portal/billing/refunds/${p.refunds[0].id}` : `/portal/billing/${p.id}`} className="text-sm font-bold text-forest">
               {p.status === "REFUNDED" ? "Refund" : "Receipt"}

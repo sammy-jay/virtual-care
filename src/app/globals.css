@@ -48,6 +48,26 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     line-height: 1.5;
+    font-optical-sizing: auto;
+    font-kerning: normal;
+  }
+  /* Even line lengths in headings, no orphans in body copy. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    text-rendering: optimizeLegibility;
+  }
+  p,
+  li {
+    text-wrap: pretty;
+  }
+  /* Numbers in tables and form fields line up in columns. */
+  table,
+  input,
+  select,
+  time {
+    font-variant-numeric: tabular-nums;
   }
   a {
     color: inherit;
@@ -66,6 +86,19 @@
   }
 }
 
+/* Newsreader: optical sizing picks the right cut per size; lining figures for stats and prices. */
+.font-display,
+.h-display {
+  font-optical-sizing: auto;
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "kern", "liga";
+}
+
+/* Equal-width figures for times, amounts and counts that sit in columns or update live. */
+@utility num {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
 @layer components {
   .eyebrow {
     font-size: 12px;
@@ -77,7 +110,7 @@
   .h-display {
     font-family: var(--font-display);
     font-weight: 400;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
     line-height: 1.05;
   }
   .card {

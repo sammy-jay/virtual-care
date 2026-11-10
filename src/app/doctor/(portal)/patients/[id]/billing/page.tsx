@@ -50,7 +50,7 @@ export default async function RecordBilling({ params, searchParams }: PageProps<
               {p.description}
               {p.note && /before/i.test(p.note) ? ` (${p.note.toLowerCase()})` : ""}
             </span>
-            <span className="font-bold">{money(p.amountCents, p.currency)}</span>
+            <span className="num font-bold">{money(p.amountCents, p.currency)}</span>
             <StatusTag status={p.status} />
             {(p.status === "PAID" || p.status === "PARTIALLY_REFUNDED") && (
               <Link href={`${base}?refund=${p.id}`} scroll={false} className="text-sm font-bold text-forest">

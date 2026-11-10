@@ -77,7 +77,7 @@ export default async function DoctorDashboard({ searchParams }: PageProps<"/doct
         ].map(([l, v, s]) => (
           <Card key={l}>
             <Eyebrow>{l}</Eyebrow>
-            <div className="mt-1.5 font-display text-[36px] leading-none">{v}</div>
+            <div className="mt-1.5 num font-display text-[36px] leading-none">{v}</div>
             <div className="mt-1.5 text-[13px] text-muted">{s}</div>
           </Card>
         ))}
@@ -97,7 +97,7 @@ export default async function DoctorDashboard({ searchParams }: PageProps<"/doct
             return (
               <div key={a.id} className="flex items-center gap-4 border-t border-line-soft px-6 py-4">
                 <div className="w-16 flex-none text-right">
-                  <b className="block text-[15px]">{fmtTime(a.startsAt, tz)}</b>
+                  <b className="num block text-[15px]">{fmtTime(a.startsAt, tz)}</b>
                   <span className="text-[12px] text-muted">{zoneAbbr(tz, a.startsAt)}</span>
                 </div>
                 <Avatar initials={prospective ? "IC" : initials(a.patient?.name ?? "?")} tone={prospective ? "gold" : "sage"} />

@@ -232,7 +232,7 @@ export function Row({ label, children, className }: { label: ReactNode; children
   return (
     <div className={cn("flex items-center justify-between gap-4 border-t border-line-soft py-[11px] text-[14.5px] first:border-t-0", className)}>
       <span className="text-muted">{label}</span>
-      <span className="text-right font-semibold">{children}</span>
+      <span className="num text-right font-semibold">{children}</span>
     </div>
   );
 }

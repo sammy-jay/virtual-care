@@ -68,7 +68,7 @@ export default async function InsightsPage({ searchParams }: PageProps<"/doctor/
         ].map(([l, v, s]) => (
           <Card key={l}>
             <Eyebrow>{l}</Eyebrow>
-            <div className="mt-1.5 font-display text-[36px] leading-none">{v}</div>
+            <div className="mt-1.5 num font-display text-[36px] leading-none">{v}</div>
             <div className="mt-1.5 text-[13px] text-muted">{s}</div>
           </Card>
         ))}

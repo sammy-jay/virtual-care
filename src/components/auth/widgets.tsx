@@ -96,7 +96,7 @@ export function Countdown({ until, done, prefix }: { until: number; done?: React
   const left = Math.max(0, Math.round((until - now) / 1000));
   if (left === 0 && done) return <>{done}</>;
   return (
-    <span suppressHydrationWarning>
+    <span className="num" suppressHydrationWarning>
       {prefix}
       {Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}
     </span>

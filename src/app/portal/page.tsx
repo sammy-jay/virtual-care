@@ -249,7 +249,7 @@ export default async function OverviewPage() {
           </div>
           {lastW ? (
             <div className="mt-2 flex items-baseline gap-3">
-              <span className="font-display text-[40px]">{lastW.value?.toFixed(1)} kg</span>
+              <span className="num font-display text-[40px]">{lastW.value?.toFixed(1)} kg</span>
               {firstW && firstW !== lastW && (
                 <span className="text-sm font-bold text-success">
                   {((lastW.value ?? 0) - (firstW.value ?? 0)).toFixed(1).replace("-", "−")} kg since {fmtShort(firstW.takenAt, tz)}

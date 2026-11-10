@@ -66,7 +66,7 @@ export default async function HomePage() {
                       <Link
                         key={s.toISOString()}
                         href={`/portal/book?type=intro&slot=${s.toISOString()}`}
-                        className={i === 1 ? "rounded-[14px] bg-forest py-[13px] text-center font-semibold text-white" : "rounded-[14px] border border-field py-[13px] text-center font-semibold hover:border-forest"}
+                        className={i === 1 ? "num rounded-[14px] bg-forest py-[13px] text-center font-semibold text-white" : "num rounded-[14px] border border-field py-[13px] text-center font-semibold hover:border-forest"}
                       >
                         {fmtTime(s, tz)}
                       </Link>

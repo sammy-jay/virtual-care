@@ -12,7 +12,7 @@ export function VisitTimer({ since, durationMin }: { since: string | null; durat
   const over = secs > durationMin * 60;
   return (
     <div>
-      <div className={`font-display text-[44px] leading-none ${over ? "text-coral" : ""}`} suppressHydrationWarning>
+      <div className={`num font-display text-[44px] leading-none ${over ? "text-coral" : ""}`} suppressHydrationWarning>
         {Math.floor(secs / 60)}:{String(secs % 60).padStart(2, "0")}
       </div>
       <div className="text-sm text-muted">of {durationMin} min</div>

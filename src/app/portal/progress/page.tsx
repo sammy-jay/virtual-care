@@ -54,7 +54,7 @@ export default async function ProgressPage({ searchParams }: PageProps<"/portal/
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <Eyebrow>Weight</Eyebrow>
-          <div className="mt-1.5 font-display text-[36px]">{lastW?.value ? `${lastW.value.toFixed(1)} kg` : "—"}</div>
+          <div className="mt-1.5 num font-display text-[36px]">{lastW?.value ? `${lastW.value.toFixed(1)} kg` : "—"}</div>
           <div className="text-sm text-body">
             {delta != null ? `${delta.toFixed(1).replace("-", "−")} kg` : "No trend yet"}
             {profile?.goalWeightKg ? ` · goal ${profile.goalWeightKg} kg` : ""}
@@ -62,12 +62,12 @@ export default async function ProgressPage({ searchParams }: PageProps<"/portal/
         </Card>
         <Card>
           <Eyebrow>Blood pressure</Eyebrow>
-          <div className="mt-1.5 font-display text-[36px]">{bp.at(-1) ? `${bp.at(-1)!.systolic}/${bp.at(-1)!.diastolic}` : "—"}</div>
+          <div className="mt-1.5 num font-display text-[36px]">{bp.at(-1) ? `${bp.at(-1)!.systolic}/${bp.at(-1)!.diastolic}` : "—"}</div>
           <div className="text-sm text-body">{bp.length > 1 ? `Down from ${bp[0].systolic}/${bp[0].diastolic}` : "Log twice a day this week"}</div>
         </Card>
         <Card>
           <Eyebrow>Walking</Eyebrow>
-          <div className="mt-1.5 font-display text-[36px]">{walk ? `${walk.value} days` : "—"}</div>
+          <div className="mt-1.5 num font-display text-[36px]">{walk ? `${walk.value} days` : "—"}</div>
           <div className="text-sm text-body">Goal 5 days a week</div>
         </Card>
       </div>

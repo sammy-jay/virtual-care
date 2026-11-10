@@ -64,14 +64,14 @@ export default async function EarningsPage({ searchParams }: PageProps<"/doctor/
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card>
           <Eyebrow>Gross this month</Eyebrow>
-          <div className="mt-1.5 font-display text-[34px] leading-none">{money(gross, "USD", { compact: true }).split(".")[0]}</div>
+          <div className="mt-1.5 num font-display text-[34px] leading-none">{money(gross, "USD", { compact: true }).split(".")[0]}</div>
           <div className="mt-1.5 text-[13px] text-muted">
             {visits} visits · {members.length} members
           </div>
         </Card>
         <Card>
           <Eyebrow>Next payout</Eyebrow>
-          <div className="mt-1.5 font-display text-[34px] leading-none">{money(pending, "USD", { compact: true }).split(".")[0]}</div>
+          <div className="mt-1.5 num font-display text-[34px] leading-none">{money(pending, "USD", { compact: true }).split(".")[0]}</div>
           <div className="mt-1.5 text-[13px] text-muted">
             {practice.payoutLast4 ? (
               `${fmt(nextFri, tz, "EEE d MMM")} · ${practice.payoutBank} ••${practice.payoutLast4}`
@@ -84,12 +84,12 @@ export default async function EarningsPage({ searchParams }: PageProps<"/doctor/
         </Card>
         <Card>
           <Eyebrow>Memberships</Eyebrow>
-          <div className="mt-1.5 font-display text-[34px] leading-none">{money(mrr, "USD", { compact: true }).split(".")[0]}</div>
+          <div className="mt-1.5 num font-display text-[34px] leading-none">{money(mrr, "USD", { compact: true }).split(".")[0]}</div>
           <div className="mt-1.5 text-[13px] text-muted">{members.length} active · MRR</div>
         </Card>
         <Card>
           <Eyebrow>Refunds</Eyebrow>
-          <div className="mt-1.5 font-display text-[34px] leading-none">{money(refunded, "USD", { compact: true }).split(".")[0]}</div>
+          <div className="mt-1.5 num font-display text-[34px] leading-none">{money(refunded, "USD", { compact: true }).split(".")[0]}</div>
           <div className="mt-1.5 text-[13px] text-muted">{refunds.length} this month</div>
         </Card>
       </div>
@@ -110,7 +110,7 @@ export default async function EarningsPage({ searchParams }: PageProps<"/doctor/
                   <b className="block truncate text-[14.5px]">{p.patient.name}</b>
                   <span className="text-[12.5px] text-muted">{p.description}</span>
                 </span>
-                <span className="text-sm font-bold">{p.status === "REFUNDED" ? `−${money(p.refundedCents, p.currency)}` : money(p.amountCents, p.currency)}</span>
+                <span className="num text-sm font-bold">{p.status === "REFUNDED" ? `−${money(p.refundedCents, p.currency)}` : money(p.amountCents, p.currency)}</span>
                 {(p.status === "PAID" || p.status === "PARTIALLY_REFUNDED") && (
                   <Link href={`/doctor/earnings?refund=${p.id}`} scroll={false} className="text-[13px] font-bold text-forest">
                     Refund

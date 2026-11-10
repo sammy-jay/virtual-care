@@ -171,7 +171,7 @@ export function BookingForm({
                 </div>
                 <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4">
                   {day?.slots.map((s) => (
-                    <button type="button" key={s.iso} onClick={() => setSlot(s.iso)} aria-pressed={s.iso === slot} className={cn("rounded-xl py-3 text-center text-sm font-semibold", s.iso === slot ? "bg-forest text-white" : "border-[1.5px] border-line bg-white hover:border-forest")}>
+                    <button type="button" key={s.iso} onClick={() => setSlot(s.iso)} aria-pressed={s.iso === slot} className={cn("num rounded-xl py-3 text-center text-sm font-semibold", s.iso === slot ? "bg-forest text-white" : "border-[1.5px] border-line bg-white hover:border-forest")}>
                       {s.label}
                     </button>
                   ))}
@@ -249,7 +249,7 @@ export function BookingForm({
             )}
             <div className="mt-1 flex items-baseline justify-between border-t-2 border-ink pt-3.5">
               <b>Total today</b>
-              <span className="font-display text-[30px]">{money(opt?.amountCents ?? 0)}</span>
+              <span className="num font-display text-[30px]">{money(opt?.amountCents ?? 0)}</span>
             </div>
             <button disabled={pending || !opt} className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-forest px-6 py-4 font-bold text-white disabled:opacity-60">
               {pending ? "Booking…" : !chosen ? "Select a time first" : free ? "Confirm booking" : "Continue to payment"}
