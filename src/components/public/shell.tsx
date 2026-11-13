@@ -88,19 +88,51 @@ export function SectionHead({ eyebrow, title, lead, center }: { eyebrow: string;
   );
 }
 
+/** [name, file in /public/as_seen_in, intrinsic width, intrinsic height, display height px] — heights tuned so marks read at equal weight. */
+const OUTLETS: [string, string, number, number, number][] = [
+  ["NBC News", "nbc_news.png", 544, 89, 22],
+  ["The Washington Post", "washington_post.svg", 463, 72, 22],
+  ["USA Today", "usa-today.png", 411, 99, 24],
+  ["Fox News", "fox_news.png", 960, 960, 38],
+  ["Yahoo", "yahoo.png", 240, 72, 26],
+  ["MSN", "msn.png", 512, 201, 30],
+  ["HuffPost", "HuffPost.png", 960, 113, 16],
+  ["New York Post", "ny_post.svg", 370, 50, 19],
+  ["U.S. News & World Report", "usn.png", 442, 114, 23],
+  ["Medscape", "medscape.jpg", 3840, 907, 24],
+  ["Parade", "parade.svg", 233, 50, 19],
+  ["AOL", "aol.png", 400, 400, 56],
+  ["Delish", "delish.jpg", 1224, 344, 24],
+  ["EatingWell", "eating_well.jpg", 200, 61, 28],
+  ["Everyday Health", "everyday.png", 291, 173, 36],
+  ["HealthCentral", "health_central.png", 600, 71, 19],
+  ["SingleCare", "single_care.png", 999, 164, 22],
+];
+
 export function FeaturedIn() {
-  const outlets = ["MSN", "Yahoo", "NBC News", "USA Today", "Parade", "Medscape", "HuffPost", "FOX News"];
   return (
-    <div className="border-y border-[#E6E8EC]">
-      <Container className="flex flex-wrap items-center justify-between gap-x-11 gap-y-5 py-[34px]">
-        <span className="text-[12px] font-bold uppercase tracking-[.16em] text-[#5A6272]">As featured in</span>
-        {outlets.map((o) => (
-          <span key={o} className="font-display text-[23px] text-[#4A5262]">
-            {o}
-          </span>
-        ))}
+    <section aria-labelledby="featured-in" className="border-y border-[#E6E8EC] bg-white">
+      <Container className="py-10 md:py-12">
+        <h2 id="featured-in" className="text-center text-[12px] font-bold uppercase tracking-[.16em] text-[#5A6272]">
+          As featured in
+        </h2>
+        <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-7 md:gap-x-12">
+          {OUTLETS.map(([name, file, w, h, height]) => (
+            <li key={name} className="flex items-center">
+              <Image
+                src={`/as_seen_in/${file}`}
+                alt={name}
+                width={w}
+                height={h}
+                sizes={`${Math.ceil((height * w) / h)}px`}
+                style={{ height, width: "auto" }}
+                className="opacity-60 mix-blend-multiply grayscale transition hover:opacity-100 hover:grayscale-0"
+              />
+            </li>
+          ))}
+        </ul>
       </Container>
-    </div>
+    </section>
   );
 }
 
