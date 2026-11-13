@@ -1,8 +1,26 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Container, CtaBand, FeaturedIn, Portrait, PublicHero, SectionHead } from "@/components/public/shell";
+import { DOCTOR } from "@/lib/doctor-profile";
 
-export const metadata: Metadata = { title: "About" };
+export const metadata: Metadata = {
+  title: "About",
+  description: `${DOCTOR.name}, ${DOCTOR.postnominals}: board certified in internal, obesity and lifestyle medicine. Houston, TX and Lagos, Nigeria.`,
+};
+
+const FOCUS = [
+  ["bg-sage", "bg-forest", "Obesity medicine", "Clinical focus on sustainable weight care, including medications such as GLP-1s when they fit."],
+  ["bg-gold-tint", "bg-gold-ink", "Lifestyle medicine", "Food, movement, sleep and stress as treatment, not afterthoughts."],
+  ["bg-coral-tint", "bg-coral-ink", "Internal medicine", "Whole-adult care for blood sugar, blood pressure, cholesterol and more."],
+  ["bg-sky-tint", "bg-sky", "Public health", "Johns Hopkins MHS-trained, with a focus on prevention and community."],
+] as const;
+
+const VALUES = [
+  ["01", "text-forest", "Faith-centered", "Prayer, purpose and community belong in the plan."],
+  ["02", "text-gold", "Culturally rooted", "We build on the foods and traditions you love, not against them."],
+  ["03", "text-coral", "Evidence-based", "Every recommendation stands on current clinical guidelines."],
+  ["04", "text-sky", "Practical", "Habits sized for real family life and busy mums, not fad diets."],
+] as const;
 
 export default function AboutPage() {
   return (
@@ -12,15 +30,18 @@ export default function AboutPage() {
       <Container className="pt-20 md:pt-[110px]">
         <div className="flex flex-wrap items-center gap-16">
           <div className="max-w-[480px] flex-[1_1_380px]">
-            <Portrait />
+            <Portrait variant="seated" />
           </div>
           <div className="flex-[1_1_440px]">
             <SectionHead eyebrow="Her story" title="Medicine that listens first." />
+            <div className="num mt-3 text-[15px] font-semibold tracking-wide text-forest">
+              {DOCTOR.name}, {DOCTOR.postnominals}
+            </div>
             <p className="mt-6 text-body-2">
-              Dr. Nneoma Oparaji is a physician serving African families in Houston, Texas and Lagos, Nigeria. She noticed that standard weight advice rarely fit the way her patients actually eat, worship and live.
+              Dr. Nneoma Oparaji is board certified in Internal Medicine, Obesity Medicine and Lifestyle Medicine. Trained across Nigeria and the United States, she blends global medical standards with cultural insight.
             </p>
             <p className="mt-4 text-body-2">
-              So she built a practice around respect: for culture, for food, for faith and for family — with the clinical rigour of obesity, lifestyle and internal medicine behind every recommendation.
+              She lives between Houston, Texas and Lagos, Nigeria with her husband and two young children. She noticed that standard weight advice rarely fit the way African families actually eat, worship and live, so she built a practice around respect for culture, food, faith and family, with clinical rigour behind every recommendation.
             </p>
             <div className="mt-8 flex flex-wrap gap-3.5">
               <Link href="/portal/book?type=intro" className="inline-flex rounded-full bg-forest px-7 py-4 font-bold text-white">
@@ -34,19 +55,39 @@ export default function AboutPage() {
         </div>
       </Container>
 
-      <div className="mt-24">
+      <Container className="pt-16">
+        <dl className="grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-3">
+          {DOCTOR.stats.map(([n, l]) => (
+            <div key={l} className="bg-white px-7 py-6">
+              <dt className="sr-only">{l}</dt>
+              <dd className="num font-display text-[44px] leading-none text-forest">{n}</dd>
+              <dd className="mt-2 text-[15px] text-body-2">{l}</dd>
+            </div>
+          ))}
+        </dl>
+      </Container>
+
+      <div className="mt-20">
         <FeaturedIn />
       </div>
 
       <Container className="pt-20 md:pt-[110px]">
+        <div className="grid gap-12 lg:grid-cols-2">
+          <div>
+            <div className="text-[13px] font-bold uppercase tracking-[.16em] text-forest">Mission</div>
+            <p className="h-display mt-4 text-[28px] leading-[1.2] md:text-[34px]">{DOCTOR.mission}</p>
+          </div>
+          <div>
+            <div className="text-[13px] font-bold uppercase tracking-[.16em] text-gold-ink">Vision</div>
+            <p className="h-display mt-4 text-[28px] leading-[1.2] md:text-[34px]">{DOCTOR.vision}</p>
+          </div>
+        </div>
+      </Container>
+
+      <Container className="pt-20 md:pt-[110px]">
         <SectionHead eyebrow="Training and focus" title="Evidence-based, always." />
         <div className="mt-12 grid gap-5 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
-          {[
-            ["bg-sage", "bg-forest", "Obesity medicine", "Clinical focus on sustainable weight care."],
-            ["bg-gold-tint", "bg-gold-ink", "Lifestyle medicine", "Food, movement, sleep and stress as treatment."],
-            ["bg-coral-tint", "bg-coral-ink", "Internal medicine", "Whole-adult care for common conditions."],
-            ["bg-sky-tint", "bg-sky", "Public health", "MHS-trained, community minded."],
-          ].map(([bg, dot, t, b]) => (
+          {FOCUS.map(([bg, dot, t, b]) => (
             <div key={t} className={`${bg} rounded-3xl p-7`}>
               <div className={`size-2.5 rounded-full ${dot}`} />
               <h3 className="mt-3.5 font-display text-2xl font-medium">{t}</h3>
@@ -54,18 +95,39 @@ export default function AboutPage() {
             </div>
           ))}
         </div>
-        <p className="mt-5 text-[13px] text-[#5A6272]">Credentials and licensure details to be confirmed by the practice.</p>
+
+        <div className="mt-12 grid gap-10 border-t border-line pt-10 md:grid-cols-2">
+          <div>
+            <h3 className="text-lg font-bold">Board certifications</h3>
+            <ul className="mt-4 space-y-3">
+              {DOCTOR.boards.map((b) => (
+                <li key={b.short} className="flex items-baseline gap-3">
+                  <span className="w-14 flex-none text-[13px] font-extrabold tracking-wide text-forest">{b.short}</span>
+                  <span className="text-body-2">{b.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-bold">Education</h3>
+            <ul className="mt-4 space-y-3">
+              {DOCTOR.education.map((e) => (
+                <li key={e.school}>
+                  <div className="font-semibold">{e.school}</div>
+                  <div className="text-[15px] text-body-2">{e.detail}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <p className="mt-8 text-[13px] text-[#5A6272]">State and country licensure is shown when you book, based on where you will be during the visit.</p>
       </Container>
 
       <div className="mt-20 bg-sage md:mt-[110px]">
         <Container className="py-20 md:py-[100px]">
-          <SectionHead eyebrow="What we believe" title="Three ideas behind every plan." />
-          <div className="mt-14 grid border-t border-sage-line [grid-template-columns:repeat(auto-fit,minmax(260px,1fr))]">
-            {[
-              ["01", "text-forest", "Culture is not the problem", "We build on the foods and traditions you love."],
-              ["02", "text-gold", "Faith is part of health", "Prayer, purpose and community belong in the plan."],
-              ["03", "text-coral", "Families change together", "Habits stick when the household shares them."],
-            ].map(([n, c, t, b]) => (
+          <SectionHead eyebrow="What we believe" title="Four values behind every plan." />
+          <div className="mt-14 grid border-t border-sage-line [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
+            {VALUES.map(([n, c, t, b]) => (
               <div key={n} className="pr-7 pt-[34px]">
                 <div className={`font-display text-[44px] leading-none ${c}`}>{n}</div>
                 <h3 className="mb-2 mt-[18px] text-xl font-bold">{t}</h3>

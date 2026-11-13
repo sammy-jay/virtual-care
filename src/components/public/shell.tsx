@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { DOCTOR } from "@/lib/doctor-profile";
 import { Dot, EmergencyBar, Logo } from "@/components/brand";
 import { Icon } from "@/components/icons";
 import { ButtonLink } from "@/components/ui";
@@ -102,14 +104,30 @@ export function FeaturedIn() {
   );
 }
 
-export function Portrait() {
+const PORTRAITS = {
+  studio: { src: "/images/dr-oparaji.jpeg", position: "50% 20%" },
+  seated: { src: "/images/dr-oparaji-2.jpeg", position: "50% 35%" },
+} as const;
+
+export function Portrait({ variant = "studio", caption }: { variant?: keyof typeof PORTRAITS; caption?: ReactNode }) {
+  const p = PORTRAITS[variant];
   return (
-    <div className="relative flex aspect-[4/5] items-end overflow-hidden rounded-[32px] bg-sage p-[30px]">
-      <Dot className="-right-[70px] -top-[70px] size-[300px] bg-gold-tint" />
-      <Dot className="-left-[50px] bottom-[60px] size-[200px] bg-coral-tint" />
-      <div className="absolute left-[34px] top-[34px] font-display text-[120px] leading-none text-forest">NO</div>
-      <div className="relative text-[13px] text-sage-ink">Portrait placeholder — swap in the practice photo</div>
-    </div>
+    <figure className="relative aspect-[4/5] overflow-hidden rounded-[32px] bg-sage">
+      <Image
+        src={p.src}
+        alt={`${DOCTOR.name}, ${DOCTOR.postnominals}`}
+        fill
+        sizes="(min-width: 1024px) 480px, 100vw"
+        className="object-cover"
+        style={{ objectPosition: p.position }}
+        priority={variant === "studio"}
+      />
+      {caption && (
+        <figcaption className="absolute inset-x-4 bottom-4 rounded-2xl bg-white/92 px-5 py-4 text-[14px] leading-snug text-ink shadow-sm backdrop-blur">
+          {caption}
+        </figcaption>
+      )}
+    </figure>
   );
 }
 
@@ -137,6 +155,14 @@ export function PublicFooter() {
         <div className="max-w-[340px]">
           <div className="font-display text-[22px] text-ink">Dr. Nneoma Oparaji</div>
           <p className="mt-2.5">Faith-centered, culturally rooted virtual care for African families.</p>
+          <p className="mt-2.5 text-[13px]">{DOCTOR.postnominals} · Houston, TX & Lagos, Nigeria</p>
+        </div>
+        <div className="flex flex-col gap-2.5">
+          <span className="font-extrabold text-forest">Connect</span>
+          <a href={`mailto:${DOCTOR.email}`} className="hover:text-ink">{DOCTOR.email}</a>
+          <a href={DOCTOR.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-ink">Instagram</a>
+          <a href={DOCTOR.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-ink">LinkedIn</a>
+          <a href={DOCTOR.website} target="_blank" rel="noopener noreferrer" className="hover:text-ink">Media &amp; speaking</a>
         </div>
         <div className="flex flex-wrap gap-14">
           <div className="flex flex-col gap-2.5">

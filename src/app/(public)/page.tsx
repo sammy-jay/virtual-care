@@ -4,6 +4,7 @@ import { PlanCards } from "@/components/public/plan-cards";
 import { Container, CtaBand, FeaturedIn, Portrait, PublicHero, SectionHead } from "@/components/public/shell";
 import { loadOpenSlots, visitorTimeZone, zoneLongName } from "@/lib/booking";
 import { getPlans, getVisitTypes } from "@/lib/care";
+import { DOCTOR } from "@/lib/doctor-profile";
 import { dayKey, fmt, fmtTime, nowMs } from "@/lib/time";
 
 export default async function HomePage() {
@@ -151,11 +152,19 @@ export default async function HomePage() {
           </div>
           <div className="flex-[1_1_440px]">
             <div className="text-[13px] font-bold uppercase tracking-[.16em] text-forest">Meet your doctor</div>
-            <h2 className="h-display mt-4 text-[40px] md:text-[52px]">Dr. Nneoma Oparaji, MD, MHS</h2>
+            <h2 className="h-display mt-4 text-[40px] md:text-[52px]">{DOCTOR.name}</h2>
+            <div className="num mt-2 text-[15px] font-semibold tracking-wide text-forest">{DOCTOR.postnominals}</div>
             <p className="mt-6 text-body-2">
-              Physician focused on obesity medicine, lifestyle medicine and internal medicine, serving African families in Houston, Texas and Lagos, Nigeria — and a speaker whose work has reached national audiences.
+              Board certified in internal medicine, obesity medicine and lifestyle medicine, and trained across Nigeria and the United States. She lives between Houston and Lagos, and her commentary on family health has featured in more than 50 media outlets.
             </p>
             <p className="mt-4 text-body-2">Her approach is simple: lasting health starts with respect for your culture, your food and your faith.</p>
+            <ul className="mt-6 flex flex-wrap gap-2">
+              {DOCTOR.boards.map((b) => (
+                <li key={b.short} title={b.name} className="rounded-full border border-sage-line bg-sage px-3.5 py-1.5 text-[13px] font-semibold text-sage-ink">
+                  {b.field}
+                </li>
+              ))}
+            </ul>
             <div className="mt-8 flex flex-wrap gap-3.5">
               <Link href="/portal/book?type=intro" className="inline-flex items-center gap-2.5 rounded-full bg-forest px-7 py-4 font-bold text-white">
                 Book an intro call

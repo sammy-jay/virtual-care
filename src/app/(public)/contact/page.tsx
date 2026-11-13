@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Icon } from "@/components/icons";
 import { Container, PublicHero } from "@/components/public/shell";
+import { DOCTOR } from "@/lib/doctor-profile";
 import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = { title: "Contact" };
@@ -33,6 +34,16 @@ export default function ContactPage() {
               <div className="mt-2 font-display text-[26px] leading-[1.2]">Book a free intro call</div>
               <div className="mt-1 text-[15px] text-body-2">15 minutes by secure video</div>
             </Link>
+            <div className="rounded-3xl border border-line px-7 py-[26px]">
+              <div className="eyebrow">Media, speaking & partnerships</div>
+              <a href={`mailto:${DOCTOR.email}`} className="mt-2 block break-all font-display text-[22px] leading-[1.2] hover:text-forest">
+                {DOCTOR.email}
+              </a>
+              <div className="mt-3 flex gap-4 text-[15px] font-semibold text-forest">
+                <a href={DOCTOR.instagram} target="_blank" rel="noopener noreferrer">Instagram</a>
+                <a href={DOCTOR.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              </div>
+            </div>
             <div className="flex gap-4 rounded-3xl bg-coral-tint px-7 py-[26px]">
               <div className="flex size-11 flex-none items-center justify-center rounded-[14px] bg-white text-coral-ink">
                 <Icon name="alert" size={22} />
