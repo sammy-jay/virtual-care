@@ -3,6 +3,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { Dot, Monogram } from "@/components/brand";
 import { Icon, type IconName } from "@/components/icons";
 import { FieldError } from "@/components/ui";
+import { DOCTOR } from "@/lib/doctor-profile";
 import { cn } from "@/lib/format";
 
 const PERKS: [IconName, string, string][] = [
@@ -15,7 +16,7 @@ const PERKS: [IconName, string, string][] = [
 export function AuthSplit({ children, perks = false }: { children: ReactNode; perks?: boolean }) {
   return (
     <div className="flex min-h-screen bg-white text-[17px] leading-[1.55] text-ink">
-      <div className="relative hidden flex-[0_0_46%] flex-col justify-between overflow-hidden bg-forest px-16 py-12 text-white lg:flex">
+      <div className="relative hidden w-1/2 flex-none flex-col justify-between overflow-hidden bg-forest px-12 py-12 text-white lg:flex xl:px-16">
         <Dot className="-right-[90px] -top-[90px] size-80 bg-forest-deep" />
         <Dot className="bottom-[130px] right-[70px] size-[120px] bg-gold" />
         <Dot className="bottom-[60px] right-[230px] size-11 bg-coral" />
@@ -24,7 +25,10 @@ export function AuthSplit({ children, perks = false }: { children: ReactNode; pe
           <span className="font-display text-xl">Dr. Nneoma Oparaji</span>
         </Link>
         <div className="relative">
-          <h2 className="h-display text-[58px] leading-[1.02] tracking-[-.025em]">Care rooted in faith, culture and family.</h2>
+          <h2 className="h-display max-w-[560px] text-[48px] leading-[1.02] tracking-[-.025em] xl:text-[58px]">Care rooted in faith, culture and family.</h2>
+          <p className="mt-4 max-w-[480px] text-white/70">
+            {DOCTOR.name}, {DOCTOR.postnominals} · Board certified in internal, obesity and lifestyle medicine.
+          </p>
           {perks &&
             PERKS.map(([icon, t, b]) => (
               <div key={t} className="mt-[22px] flex gap-3.5">
@@ -40,7 +44,7 @@ export function AuthSplit({ children, perks = false }: { children: ReactNode; pe
         </div>
         <div className="relative text-[13px] text-white/60">Not for emergencies. Call 911 (US) or 112 (Nigeria).</div>
       </div>
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col lg:w-1/2 lg:flex-none">
         <div className="flex items-center justify-between border-b border-line px-4 py-3 lg:hidden">
           <Link href="/" className="flex items-center gap-2.5">
             <Monogram size={36} />
