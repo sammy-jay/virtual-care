@@ -18,6 +18,7 @@ export function AppShell({
   cta,
   nav,
   mobileNav,
+  mobileMore,
   statusCard,
   user,
   zoneChip,
@@ -37,6 +38,8 @@ export function AppShell({
   cta: ReactNode;
   nav: NavItem[];
   mobileNav: NavItem[];
+  /** Pages for the mobile "More" sheet, which also holds the user and Sign out. */
+  mobileMore?: NavItem[];
   statusCard: ReactNode;
   user: { initials: string; name: string; caption: string };
   zoneChip: string;
@@ -70,8 +73,8 @@ export function AppShell({
               <span className="block text-[12px] font-medium text-muted">{user.caption}</span>
             </span>
             <form action={signOut}>
-              <button className="flex size-9 items-center justify-center rounded-full text-muted hover:bg-canvas" aria-label="Sign out" title="Sign out">
-                <Icon name="leave" size={17} />
+              <button className="flex size-9 items-center justify-center rounded-full text-muted hover:bg-canvas hover:text-ink" aria-label="Sign out" title="Sign out">
+                <Icon name="logout" size={18} />
               </button>
             </form>
           </div>
@@ -108,7 +111,7 @@ export function AppShell({
         </header>
         <main className="flex-1 bg-canvas px-4 pb-28 pt-6 sm:px-10 sm:pt-8 lg:pb-10">{children}</main>
       </div>
-      <BottomTabs items={mobileNav} root={root} />
+      <BottomTabs items={mobileNav} root={root} more={mobileMore ? { items: mobileMore, user, signOut } : undefined} />
     </div>
   );
 }

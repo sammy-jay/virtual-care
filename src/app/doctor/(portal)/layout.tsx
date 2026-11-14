@@ -38,7 +38,13 @@ export default async function DoctorLayout({ children }: LayoutProps<"/doctor">)
     { href: "/doctor/appointments", label: "Visits", icon: "calendar" as const, match: ["/doctor/visits"] },
     { href: "/doctor/patients", label: "Patients", icon: "user" as const },
     { href: "/doctor/messages", label: "Inbox", icon: "inbox" as const, badge: unread + newInquiries, match: ["/doctor/inquiries"] },
-    { href: "/doctor/settings", label: "More", icon: "more" as const, match: ["/doctor/earnings", "/doctor/insights", "/doctor/availability", "/doctor/setup"] },
+  ];
+  const mobileMore = [
+    { href: "/doctor/inquiries", label: "Inquiries", icon: "mail" as const, badge: newInquiries },
+    { href: "/doctor/availability", label: "Availability", icon: "clock" as const },
+    { href: "/doctor/earnings", label: "Earnings", icon: "card" as const },
+    { href: "/doctor/insights", label: "Insights", icon: "chart" as const },
+    { href: "/doctor/settings", label: "Settings", icon: "gear" as const, match: ["/doctor/setup"] },
   ];
 
   return (
@@ -59,6 +65,7 @@ export default async function DoctorLayout({ children }: LayoutProps<"/doctor">)
       }
       nav={nav}
       mobileNav={mobileNav}
+      mobileMore={mobileMore}
       statusCard={
         <Link href="/doctor/availability" className="mb-3.5 block rounded-2xl bg-sage px-4 py-3.5">
           <div className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[.14em] text-forest">
