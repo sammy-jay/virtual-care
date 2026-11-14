@@ -93,10 +93,10 @@ const OUTLETS: [string, string, number, number, number][] = [
   ["NBC News", "nbc_news.png", 544, 89, 22],
   ["The Washington Post", "washington_post.svg", 463, 72, 22],
   ["USA Today", "usa-today.png", 411, 99, 24],
-  ["Fox News", "fox_news.png", 960, 960, 38],
+  ["Fox News", "fox_news.png", 960, 960, 36],
   ["Yahoo", "yahoo.png", 240, 72, 26],
-  ["MSN", "msn.png", 512, 201, 30],
   ["HuffPost", "HuffPost.png", 960, 113, 16],
+  ["MSN", "msn.png", 512, 201, 30],
   ["New York Post", "ny_post.svg", 370, 50, 19],
   ["U.S. News & World Report", "usn.png", 442, 114, 23],
   ["Medscape", "medscape.jpg", 3840, 907, 24],
@@ -109,15 +109,17 @@ const OUTLETS: [string, string, number, number, number][] = [
   ["SingleCare", "single_care.png", 999, 164, 22],
 ];
 
-export function FeaturedIn() {
+/** `top` keeps only the first N outlets (the list is ordered by prominence). */
+export function FeaturedIn({ top }: { top?: number }) {
+  const outlets = top ? OUTLETS.slice(0, top) : OUTLETS;
   return (
     <section aria-labelledby="featured-in" className="border-y border-[#E6E8EC] bg-white">
       <Container className="py-10 md:py-12">
         <h2 id="featured-in" className="text-center text-[12px] font-bold uppercase tracking-[.16em] text-[#5A6272]">
           As featured in
         </h2>
-        <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-7 md:gap-x-12">
-          {OUTLETS.map(([name, file, w, h, height]) => (
+        <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-7 md:gap-x-14">
+          {outlets.map(([name, file, w, h, height]) => (
             <li key={name} className="flex items-center">
               <Image
                 src={`/as_seen_in/${file}`}
@@ -126,7 +128,7 @@ export function FeaturedIn() {
                 height={h}
                 sizes={`${Math.ceil((height * w) / h)}px`}
                 style={{ height, width: "auto" }}
-                className="opacity-60 mix-blend-multiply grayscale transition hover:opacity-100 hover:grayscale-0"
+                className="block"
               />
             </li>
           ))}

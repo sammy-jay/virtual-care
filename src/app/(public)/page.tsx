@@ -86,7 +86,7 @@ export default async function HomePage() {
         </div>
       </PublicHero>
 
-      <FeaturedIn />
+      <FeaturedIn top={6} />
 
       <Container className="pt-20 md:pt-[110px]">
         <div className="flex flex-wrap items-end justify-between gap-8">
