@@ -47,40 +47,59 @@ export default async function MyVisitsPage({ searchParams }: PageProps<"/portal/
         {(["upcoming", "past"] as const).map((t) => (
           <Link key={t} href={`/portal/visits?tab=${t}`} role="tab" aria-selected={tab === t} className={cn("flex-1 rounded-full px-5 py-2 text-center text-sm font-bold capitalize sm:flex-none", tab === t ? "bg-forest text-white" : "text-body")}>
             {t}
+            <span className={cn("num ml-1.5 rounded-full px-1.5 py-px text-[12px]", tab === t ? "bg-white/20" : "bg-canvas")}>{(t === "past" ? past : upcoming).length}</span>
           </Link>
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
-        <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-3">
           {list.length === 0 && (
             <EmptyState title={tab === "upcoming" ? "No upcoming visits" : "No past visits yet"} body="Book your next visit when you are ready." action={<ButtonLink href="/portal/book">Book a visit</ButtonLink>} />
           )}
-          {list.map((a) => (
-            <Link
-              key={a.id}
-              href={`/portal/visits?tab=${tab}&id=${a.id}`}
-              scroll={false}
-              className={cn("flex items-center justify-between gap-4 rounded-[18px] border bg-white px-5 py-4", selected?.id === a.id ? "border-2 border-forest" : "border-line")}
-            >
-              <div className="min-w-0">
-                <b className="block truncate text-[15.5px]">
-                  {a.visitType.name} · {tab === "upcoming" ? `${fmt(a.startsAt, tz, "EEE d MMM")}, ${fmtTime(a.startsAt, tz)}` : fmtShort(a.startsAt, tz)}
-                </b>
-                <span className="text-[13px] text-muted">{subline(a)}</span>
-              </div>
-              <StatusTag status={a.status} />
-            </Link>
-          ))}
+          {list.map((a) => {
+            const on = selected?.id === a.id;
+            return (
+              <Link
+                key={a.id}
+                href={`/portal/visits?tab=${tab}&id=${a.id}#visit-detail`}
+                aria-current={on ? "true" : undefined}
+                className={cn(
+                  "flex items-center gap-4 rounded-[18px] border-2 bg-white p-3.5 pr-4 transition-colors sm:p-4 sm:pr-5",
+                  on ? "border-forest" : "border-transparent shadow-[0_0_0_1px_var(--color-line)] hover:shadow-[0_0_0_1px_var(--color-sage-line)]",
+                )}
+              >
+                <div className={cn("flex w-[54px] flex-none flex-col items-center rounded-xl py-2 leading-none", on ? "bg-forest text-white" : "bg-sage text-forest")}>
+                  <span className="text-[11px] font-bold uppercase tracking-wider">{fmt(a.startsAt, tz, "MMM")}</span>
+                  <span className="num mt-1 font-display text-[24px]">{fmt(a.startsAt, tz, "d")}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <b className="block text-[15.5px] leading-snug">{a.visitType.name}</b>
+                  <span className="num block text-[13.5px] text-body">
+                    {tab === "upcoming" ? fmt(a.startsAt, tz, "EEEE") : fmtShort(a.startsAt, tz)} · {fmtTime(a.startsAt, tz)} {zoneAbbr(tz, a.startsAt)}
+                  </span>
+                  <span className="block text-[13px] text-muted">{subline(a)}</span>
+                  {a.status !== "SCHEDULED" && (
+                    <span className="mt-1.5 block sm:hidden">
+                      <StatusTag status={a.status} />
+                    </span>
+                  )}
+                </div>
+                <span className="hidden flex-none sm:block">
+                  <StatusTag status={a.status} />
+                </span>
+              </Link>
+            );
+          })}
         </div>
 
         {selected && (
-          <Card className="h-fit lg:sticky lg:top-24">
+          <Card id="visit-detail" className="min-w-0 scroll-mt-20 lg:sticky lg:top-24">
             <div className="eyebrow">Visit detail</div>
-            <div className="mt-1.5 font-display text-[26px]">
+            <div className="mt-1.5 font-display text-[24px] leading-tight sm:text-[26px]">
               {selected.visitType.name} · {fmt(selected.startsAt, tz, "EEE d MMM")}
             </div>
-            <div className="mb-2 text-sm text-body">
+            <div className="num mb-2 mt-1 text-sm text-body">
               {fmtTime(selected.startsAt, tz)} {zoneAbbr(tz, selected.startsAt)} · {fmtTime(selected.startsAt, PRACTICE_TZ)} Houston
             </div>
             <Row label="Price">{priceLabel(selected)}</Row>
@@ -107,14 +126,14 @@ export default async function MyVisitsPage({ searchParams }: PageProps<"/portal/
             {isUpcoming && selected.status === "SCHEDULED" && (
               <>
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <ButtonLink href={`/portal/visits/${selected.id}/precheck`} icon="video" className="flex-1">
+                  <ButtonLink href={`/portal/visits/${selected.id}/precheck`} icon="video" className="min-w-[180px] flex-[2]">
                     Join video visit
                   </ButtonLink>
-                  <ButtonLink href={`${base}&dialog=${canCancelFree(selected, practice.cancelHours) ? "reschedule" : "blocked"}`} variant="secondary" scroll={false}>
+                  <ButtonLink href={`${base}&dialog=${canCancelFree(selected, practice.cancelHours) ? "reschedule" : "blocked"}`} variant="secondary" scroll={false} className="flex-1">
                     Reschedule
                   </ButtonLink>
                 </div>
-                <div className="mt-3 flex items-center justify-between text-[13px]">
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[13px]">
                   <span className="text-muted">Backup link shown if video fails</span>
                   <Link href={`${base}&dialog=${canCancelFree(selected, practice.cancelHours) ? "cancel" : "blocked"}`} scroll={false} className="font-bold text-danger">
                     Cancel visit
