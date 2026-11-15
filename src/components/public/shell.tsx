@@ -5,7 +5,7 @@ import { DOCTOR, PORTFOLIO_HOST, portfolio } from "@/lib/doctor-profile";
 import { Dot, EmergencyBar, Logo, Monogram } from "@/components/brand";
 import { Icon } from "@/components/icons";
 import { ButtonLink } from "@/components/ui";
-import { NavLinks } from "./nav-links";
+import { MobileMenu, NavLinks } from "./nav-links";
 import { PUBLIC_NAV } from "./nav-items";
 
 export const Container = ({ children, className = "" }: { children: ReactNode; className?: string }) => (
@@ -14,7 +14,7 @@ export const Container = ({ children, className = "" }: { children: ReactNode; c
 
 export function PublicNav() {
   return (
-    <nav className="flex flex-wrap items-center justify-between gap-6 py-[26px]">
+    <nav className="flex items-center justify-between gap-6 py-3.5 md:py-[18px]">
       <div className="flex min-w-0 items-center gap-4">
         <Logo />
         {/* Hidden at lg–xl, where the centre links leave no room for it; the menu carries it below lg. */}
@@ -31,45 +31,50 @@ export function PublicNav() {
           Get started
         </Link>
       </div>
-      <details className="group relative lg:hidden">
-        <summary className="flex size-11 cursor-pointer list-none items-center justify-center rounded-full border border-field bg-white" aria-label="Menu">
-          <Icon name="menu" />
-        </summary>
-        <div className="absolute right-0 z-40 mt-2 flex w-60 flex-col gap-1 rounded-2xl border border-line bg-white p-3 shadow-xl">
-          {PUBLIC_NAV.map((l) => (
-            <Link key={l.href} href={l.href} className="rounded-xl px-3 py-2.5 font-semibold hover:bg-sage">
-              {l.label}
-            </Link>
-          ))}
-          <a href={portfolio()} className="rounded-xl px-3 py-2.5 text-sm font-semibold text-sage-ink hover:bg-sage">
-            ← {PORTFOLIO_HOST}
-          </a>
-          <div className="mt-2 flex gap-2 border-t border-line pt-3">
-            <ButtonLink href="/sign-in" variant="outline" size="sm" className="flex-1">
-              Sign in
-            </ButtonLink>
-            <ButtonLink href="/sign-up" size="sm" className="flex-1">
-              Get started
-            </ButtonLink>
-          </div>
+      <MobileMenu className="lg:hidden">
+        {PUBLIC_NAV.map((l) => (
+          <Link key={l.href} href={l.href} className="rounded-xl px-3 py-2.5 font-semibold hover:bg-sage">
+            {l.label}
+          </Link>
+        ))}
+        <a href={portfolio()} className="rounded-xl px-3 py-2.5 text-sm font-semibold text-sage-ink hover:bg-sage">
+          ← {PORTFOLIO_HOST}
+        </a>
+        <div className="mt-2 flex gap-2 border-t border-line pt-3">
+          <ButtonLink href="/sign-in" variant="outline" size="sm" className="flex-1">
+            Sign in
+          </ButtonLink>
+          <ButtonLink href="/sign-up" size="sm" className="flex-1">
+            Get started
+          </ButtonLink>
         </div>
-      </details>
+      </MobileMenu>
     </nav>
   );
 }
 
-/** Sand hero band with nav and decorative circles (top of every public page). */
+/** Sticky site header: stays on top while scrolling, above every page section. */
+export function PublicHeader() {
+  return (
+    <header className="sticky top-0 z-40 border-b border-[#EFE4CF] bg-sand/90 backdrop-blur-md supports-[backdrop-filter]:bg-sand/80">
+      <Container>
+        <PublicNav />
+      </Container>
+    </header>
+  );
+}
+
+/** Sand hero band with decorative circles (top of every public page; the header sits above it). */
 export function PublicHero({ eyebrow, title, lead, children }: { eyebrow?: string; title?: ReactNode; lead?: ReactNode; children?: ReactNode }) {
   return (
     <div className="relative overflow-hidden bg-sand text-ink">
-      <div aria-hidden="true" className="pointer-events-none absolute -right-[60px] top-[30px] hidden h-[520px] w-[560px] md:block">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-[60px] -top-[50px] hidden h-[520px] w-[560px] md:block">
         <Dot className="right-10 top-0 size-[400px] bg-sage" />
         <Dot className="right-[300px] top-[260px] size-[210px] bg-gold opacity-90" />
         <Dot className="right-5 top-[330px] size-[140px] bg-coral" />
         <Dot className="right-[230px] top-[60px] size-[90px] border-[10px] border-sky" />
       </div>
       <Container className="relative">
-        <PublicNav />
         {children ?? (
           <div className="max-w-[760px] pb-20 pt-10 md:pb-24 md:pt-[60px]">
             {eyebrow && (
@@ -251,6 +256,7 @@ export function PublicPage({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-white text-[17px] leading-[1.55] text-ink">
       <EmergencyBar />
+      <PublicHeader />
       {children}
     </div>
   );
