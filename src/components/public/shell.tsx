@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { DOCTOR } from "@/lib/doctor-profile";
-import { Dot, EmergencyBar, Logo } from "@/components/brand";
+import { Dot, EmergencyBar, Logo, Monogram } from "@/components/brand";
 import { Icon } from "@/components/icons";
 import { ButtonLink } from "@/components/ui";
 import { NavLinks } from "./nav-links";
@@ -187,6 +187,14 @@ export function PublicFooter() {
     <footer className="flex flex-1 flex-col bg-sage text-sm text-sage-ink">
       <Container className="flex flex-wrap justify-between gap-10 py-14">
         <div className="max-w-[340px]">
+          <div className="mb-5 flex items-center gap-4">
+            <Monogram size={60} />
+            <p className="text-[11px] font-semibold uppercase leading-[1.6] tracking-[.18em] text-ink">
+              Faith. Culture.
+              <br />
+              Evidence-based health.
+            </p>
+          </div>
           <div className="font-display text-[22px] text-ink">Dr. Nneoma Oparaji</div>
           <p className="mt-2.5">Faith-centered, culturally rooted virtual care for African families.</p>
           <p className="mt-2.5 text-[13px]">{DOCTOR.postnominals} · Houston, TX & Lagos, Nigeria</p>
