@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Alert, Card, Eyebrow, Row } from "@/components/ui";
 import { requirePatient } from "@/lib/auth/dal";
+import { releaseExpiredHolds } from "@/lib/booking";
 import { db } from "@/lib/db";
 import { money } from "@/lib/format";
 import { fmt, fmtTime, zoneAbbr } from "@/lib/time";
@@ -13,8 +14,10 @@ export default async function PayVisitPage({ params, searchParams }: PageProps<"
   const user = await requirePatient();
   const { id } = await params;
   const { error } = await searchParams;
+  await releaseExpiredHolds();
   const a = await db.appointment.findUnique({ where: { id }, include: { visitType: true, membership: { include: { plan: true } } } });
   if (!a || a.patientId !== user.id) notFound();
+  if (a.status === "CANCELED") redirect(`/portal/visits?tab=past&id=${a.id}`); // hold expired
   if (a.status !== "PENDING_PAYMENT") redirect(`/portal/visits/${a.id}/confirmed`);
   const methods = await db.paymentMethod.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" } });
   const tz = user.timeZone;

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requirePatient } from "@/lib/auth/dal";
 import { chargeAndRecord } from "@/lib/billing";
+import { releaseExpiredHolds } from "@/lib/booking";
 import { resolvePaymentMethod } from "@/lib/cards";
 import { getActiveMembership } from "@/lib/care";
 import { db } from "@/lib/db";
@@ -16,8 +17,10 @@ export type PayState = { error?: string };
 /** 06.5 — pay for a PENDING_PAYMENT visit. */
 export async function payForVisit(_: PayState, form: FormData): Promise<PayState> {
   const user = await requirePatient();
+  await releaseExpiredHolds();
   const a = await db.appointment.findUnique({ where: { id: String(form.get("appointmentId")) }, include: { visitType: true } });
   if (!a || a.patientId !== user.id) redirect("/portal/visits");
+  if (a.status === "CANCELED") redirect(`/portal/visits?tab=past&id=${a.id}`); // hold expired; never charge it
   if (a.status !== "PENDING_PAYMENT") redirect(`/portal/visits/${a.id}/confirmed`);
   const pm = await resolvePaymentMethod(user.id, form);
   if ("error" in pm) return { error: pm.error };

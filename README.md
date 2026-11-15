@@ -49,7 +49,13 @@ Mock payments: card `4000 0000 0000 0002` is declined. Any other valid card numb
 - renewing memberships, with a 3-day grace period when payment fails
 - ending memberships that were cancelled at period end
 
-[vercel.json](vercel.json) schedules it every 5 minutes on Vercel.
+[vercel.json](vercel.json) runs it once a day at 12:00 UTC (6–7 AM Houston, 1 PM Lagos), because Vercel Hobby only allows daily cron jobs. On that schedule:
+- unpaid slot holds still expire after 30 minutes: they are also released whenever slots are loaded or a payment starts
+- membership renewals and endings run on the day they fall due
+- the "24 h" reminder arrives sometime in the 24 hours before the visit, depending on when the visit falls relative to 12:00 UTC
+- **1 h reminders only go out if the job happens to run in the hour before a visit**
+
+To send reminders on time, also call the endpoint every 10 minutes from a free external scheduler (for example cron-job.org or a GitHub Actions schedule) with the same `Authorization` header, or move to Vercel Pro and set the schedule back to `*/5 * * * *`. Extra runs are harmless; every step is idempotent.
 
 ## Integrations
 

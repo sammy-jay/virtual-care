@@ -1,8 +1,9 @@
 import { runJobs } from "@/lib/jobs";
 
 /**
- * Background jobs. Call every 5 minutes with `Authorization: Bearer $CRON_SECRET`
- * (Vercel Cron, GitHub Actions, or any scheduler).
+ * Background jobs, called with `Authorization: Bearer $CRON_SECRET`.
+ * Vercel Hobby runs it once a day (vercel.json, 12:00 UTC). Any external scheduler may call it more
+ * often (e.g. every 10 minutes) to send 1-hour reminders on time; every step is idempotent.
  */
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;

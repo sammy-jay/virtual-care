@@ -6,8 +6,24 @@ import { getPractice } from "@/lib/care";
 import { openSlots } from "@/lib/slots";
 import { TIME_ZONES } from "@/lib/time";
 
+/** An unpaid booking holds its slot for this long. */
+export const HOLD_MINUTES = 30;
+
+/**
+ * Cancel unpaid bookings older than HOLD_MINUTES. Runs whenever slots are read or a payment starts,
+ * so holds expire on time even though the cron job only runs daily. Idempotent and cheap.
+ */
+export async function releaseExpiredHolds(now = new Date()) {
+  const r = await db.appointment.updateMany({
+    where: { status: "PENDING_PAYMENT", createdAt: { lt: new Date(now.getTime() - HOLD_MINUTES * 60_000) } },
+    data: { status: "CANCELED", canceledAt: now },
+  });
+  return r.count;
+}
+
 /** Open slots for a visit type, from the doctor's windows minus time off and bookings. */
 export async function loadOpenSlots(visitType: Pick<VisitType, "id" | "durationMin">, from: Date, days: number, ignoreAppointmentId?: string) {
+  await releaseExpiredHolds();
   const practice = await getPractice();
   const until = new Date(from.getTime() + (days + 1) * 86400_000);
   const [windows, timeOff, booked] = await Promise.all([

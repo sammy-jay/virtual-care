@@ -1,11 +1,15 @@
 import "server-only";
 import { chargeAndRecord } from "@/lib/billing";
+import { releaseExpiredHolds } from "@/lib/booking";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { notify } from "@/lib/notify";
 import { addMonths, fmtWhen } from "@/lib/time";
 
-/** Runs every few minutes from /api/cron/tick. Each step is idempotent. */
+/**
+ * Runs from /api/cron/tick: daily on Vercel Hobby (vercel.json), or more often from any external
+ * scheduler for timely 1-hour reminders. Each step is idempotent, so extra runs are harmless.
+ */
 export async function runJobs(now = new Date()) {
   const out = { reminders24: 0, reminders1: 0, releasedHolds: 0, renewed: 0, failedRenewals: 0, ended: 0, lapsed: 0 };
 
@@ -31,9 +35,8 @@ export async function runJobs(now = new Date()) {
     }
   }
 
-  // Unpaid bookings hold a slot for 30 minutes.
-  const holds = await db.appointment.updateMany({ where: { status: "PENDING_PAYMENT", createdAt: { lt: new Date(now.getTime() - 30 * 60_000) } }, data: { status: "CANCELED", canceledAt: now } });
-  out.releasedHolds = holds.count;
+  // Unpaid bookings hold a slot for 30 minutes (also enforced whenever slots are read).
+  out.releasedHolds = await releaseExpiredHolds(now);
 
   // Membership period end: cancel, renew, or lapse after the 3-day grace (06.7, 06.10).
   const due = await db.membership.findMany({ where: { status: { in: ["ACTIVE", "PAST_DUE"] }, currentPeriodEnd: { lte: now } }, include: { plan: true, patient: true } });
