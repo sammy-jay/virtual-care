@@ -5,14 +5,17 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { cn } from "@/lib/format";
+import { badgeValue, useBadges, type BadgeKey } from "./live-badges";
 
-export type NavItem = { href: string; label: string; icon: IconName; badge?: number; match?: string[] };
+/** `live` names the polled count shown as this item's badge (see live-badges.tsx). */
+export type NavItem = { href: string; label: string; icon: IconName; live?: BadgeKey; match?: string[] };
 
 const isActive = (path: string, item: NavItem, root: string) =>
   item.href === root ? path === root : [item.href, ...(item.match ?? [])].some((h) => path === h || path.startsWith(h + "/"));
 
 export function SideNav({ items, root }: { items: NavItem[]; root: string }) {
   const path = usePathname();
+  const live = useBadges();
   return (
     <nav className="flex flex-col gap-1" aria-label="Main">
       {items.map((item) => {
@@ -29,7 +32,7 @@ export function SideNav({ items, root }: { items: NavItem[]; root: string }) {
           >
             <Icon name={item.icon} />
             {item.label}
-            {!!item.badge && <span className={cn("ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold text-white", root === "/doctor" ? "bg-coral" : "bg-forest")}>{item.badge}</span>}
+            <CountBadge n={badgeValue(live, item.live)} className={root === "/doctor" ? "bg-coral" : "bg-forest"} />
           </Link>
         );
       })}
@@ -54,6 +57,7 @@ export function BottomTabs({
   more?: { items: NavItem[]; user: { initials: string; name: string; caption: string }; signOut: () => Promise<void> };
 }) {
   const path = usePathname();
+  const live = useBadges();
   const [open, setOpen] = useState(false);
   const [openedAt, setOpenedAt] = useState(path);
   // Close the sheet after navigating (derived from the path, not an effect).
@@ -68,7 +72,7 @@ export function BottomTabs({
   }, [open]);
 
   const moreActive = !!more && more.items.some((i) => isActive(path, i, root));
-  const moreBadge = more?.items.some((i) => i.badge);
+  const moreBadge = more?.items.some((i) => (badgeValue(live, i.live) ?? 0) > 0);
 
   return (
     <>
@@ -79,7 +83,7 @@ export function BottomTabs({
             <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={tabCls(active)}>
               <Icon name={item.icon} size={21} />
               {item.label}
-              {!!item.badge && <span className="absolute right-[calc(50%-18px)] top-2 size-2 rounded-full bg-coral" />}
+              {(badgeValue(live, item.live) ?? 0) > 0 && <span className="absolute right-[calc(50%-18px)] top-2 size-2 rounded-full bg-coral" aria-hidden="true" />}
             </Link>
           );
         })}
@@ -119,7 +123,7 @@ export function BottomTabs({
                   >
                     <Icon name={item.icon} />
                     {item.label}
-                    {!!item.badge && <span className="ml-auto rounded-full bg-coral px-2 py-0.5 text-[11px] font-bold text-white">{item.badge}</span>}
+                    <CountBadge n={badgeValue(live, item.live)} className="bg-coral" />
                   </Link>
                 );
               })}
@@ -141,6 +145,15 @@ export function BottomTabs({
         </div>
       )}
     </>
+  );
+}
+
+function CountBadge({ n, className }: { n?: number; className: string }) {
+  if (!n) return null;
+  return (
+    <span className={cn("num ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold text-white", className)} aria-label={`${n} unread`}>
+      {n > 99 ? "99+" : n}
+    </span>
   );
 }
 

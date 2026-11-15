@@ -3,7 +3,8 @@ import { AppShell } from "@/components/portal/app-shell";
 import { Icon } from "@/components/icons";
 import { requireDoctor } from "@/lib/auth/dal";
 import { loadOpenSlots } from "@/lib/booking";
-import { getPractice, getVisitTypes, unreadForDoctor } from "@/lib/care";
+import { badgeCounts } from "@/lib/badges";
+import { getPractice, getVisitTypes } from "@/lib/care";
 import { db } from "@/lib/db";
 import { initials } from "@/lib/format";
 import { fmt, PRACTICE_TZ, zoneAbbr, zoneChip } from "@/lib/time";
@@ -12,10 +13,8 @@ import { signOut } from "../../(auth)/actions";
 export default async function DoctorLayout({ children }: LayoutProps<"/doctor">) {
   const user = await requireDoctor();
   const practice = await getPractice();
-  const [unread, newInquiries, unseen, next, types] = await Promise.all([
-    unreadForDoctor(),
-    db.inquiry.count({ where: { status: "NEW" } }),
-    db.notification.count({ where: { userId: user.id, readAt: null } }),
+  const [badges, next, types] = await Promise.all([
+    badgeCounts(user),
     db.appointment.findFirst({ where: { status: "SCHEDULED", endsAt: { gte: new Date() } }, orderBy: { startsAt: "asc" } }),
     getVisitTypes(),
   ]);
@@ -26,8 +25,8 @@ export default async function DoctorLayout({ children }: LayoutProps<"/doctor">)
     { href: "/doctor", label: "Dashboard", icon: "home" as const },
     { href: "/doctor/appointments", label: "Appointments", icon: "calendar" as const, match: ["/doctor/visits"] },
     { href: "/doctor/patients", label: "Patients", icon: "user" as const, match: ["/doctor/care-plans"] },
-    { href: "/doctor/messages", label: "Messages", icon: "chat" as const, badge: unread },
-    { href: "/doctor/inquiries", label: "Inquiries", icon: "mail" as const, badge: newInquiries },
+    { href: "/doctor/messages", label: "Messages", icon: "chat" as const, live: "messages" as const },
+    { href: "/doctor/inquiries", label: "Inquiries", icon: "mail" as const, live: "inquiries" as const },
     { href: "/doctor/availability", label: "Availability", icon: "clock" as const },
     { href: "/doctor/earnings", label: "Earnings", icon: "card" as const },
     { href: "/doctor/insights", label: "Insights", icon: "doc" as const },
@@ -37,10 +36,10 @@ export default async function DoctorLayout({ children }: LayoutProps<"/doctor">)
     { href: "/doctor", label: "Today", icon: "home" as const },
     { href: "/doctor/appointments", label: "Visits", icon: "calendar" as const, match: ["/doctor/visits"] },
     { href: "/doctor/patients", label: "Patients", icon: "user" as const },
-    { href: "/doctor/messages", label: "Inbox", icon: "inbox" as const, badge: unread + newInquiries, match: ["/doctor/inquiries"] },
+    { href: "/doctor/messages", label: "Inbox", icon: "inbox" as const, live: "inbox" as const, match: ["/doctor/inquiries"] },
   ];
   const mobileMore = [
-    { href: "/doctor/inquiries", label: "Inquiries", icon: "mail" as const, badge: newInquiries },
+    { href: "/doctor/inquiries", label: "Inquiries", icon: "mail" as const, live: "inquiries" as const },
     { href: "/doctor/availability", label: "Availability", icon: "clock" as const },
     { href: "/doctor/earnings", label: "Earnings", icon: "card" as const },
     { href: "/doctor/insights", label: "Insights", icon: "chart" as const },
@@ -81,7 +80,7 @@ export default async function DoctorLayout({ children }: LayoutProps<"/doctor">)
       searchHref="/doctor/search"
       searchLabel="Search patients, visits, messages"
       bellHref="/doctor/notifications"
-      bellDot={unseen > 0}
+      badges={badges}
       signOut={signOut}
     >
       {children}
