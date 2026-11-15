@@ -1,10 +1,17 @@
+/** Dr. Oparaji's main site. The practice pages link back to it so the two read as one site. */
+export const PORTFOLIO_URL = (process.env.NEXT_PUBLIC_PORTFOLIO_URL || "https://www.nneomaoparaji.com").replace(/\/+$/, "");
+/** Display name for the portfolio, e.g. "nneomaoparaji.com". */
+export const PORTFOLIO_HOST = new URL(PORTFOLIO_URL).host.replace(/^www\./, "");
+/** A page on the portfolio, e.g. portfolio("/about"). */
+export const portfolio = (path = "") => `${PORTFOLIO_URL}${path}`;
+
 /** Public profile facts, taken from nneomaoparaji.com. Edit here, not in the pages. */
 export const DOCTOR = {
   name: "Dr. Nneoma Oparaji",
   postnominals: "MD, MHS, ABOM, DipABLM",
   title: "Obesity & Lifestyle Medicine Specialist",
   email: "contact@nneomaoparaji.com",
-  website: "https://www.nneomaoparaji.com",
+  website: PORTFOLIO_URL,
   instagram: "https://www.instagram.com/nneomaoparajimd",
   linkedin: "https://www.linkedin.com/in/nneoma-nnodum-oparaji-md-mhs-dipablm-158a0493/",
   mission:

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Container, CtaBand, FeaturedIn, Portrait, PublicHero, SectionHead } from "@/components/public/shell";
-import { DOCTOR } from "@/lib/doctor-profile";
+import { Icon } from "@/components/icons";
+import { DOCTOR, portfolio } from "@/lib/doctor-profile";
 
 export const metadata: Metadata = {
   title: "About",
@@ -38,11 +39,11 @@ export default function AboutPage() {
               {DOCTOR.name}, {DOCTOR.postnominals}
             </div>
             <p className="mt-6 text-body-2">
-              Dr. Nneoma Oparaji is board certified in Internal Medicine, Obesity Medicine and Lifestyle Medicine. Trained across Nigeria and the United States, she blends global medical standards with cultural insight.
+              Board certified in internal, obesity and lifestyle medicine and trained across Nigeria and the United States, Dr. Oparaji built this practice for African families who want care that respects their food, faith and culture.
             </p>
-            <p className="mt-4 text-body-2">
-              She lives between Houston, Texas and Lagos, Nigeria with her husband and two young children. She noticed that standard weight advice rarely fit the way African families actually eat, worship and live, so she built a practice around respect for culture, food, faith and family, with clinical rigour behind every recommendation.
-            </p>
+            <a href={portfolio("/about")} className="mt-3 inline-flex items-center gap-1.5 font-bold text-forest hover:text-forest-deep">
+              Read the full story <Icon name="arrow" size={16} strokeWidth={2.2} />
+            </a>
             <div className="mt-8 flex flex-wrap gap-3.5">
               <Link href="/portal/book?type=intro" className="inline-flex rounded-full bg-forest px-7 py-4 font-bold text-white">
                 Book an intro call

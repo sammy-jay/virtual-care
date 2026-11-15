@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { DOCTOR } from "@/lib/doctor-profile";
+import { DOCTOR, PORTFOLIO_HOST, portfolio } from "@/lib/doctor-profile";
 import { Dot, EmergencyBar, Logo, Monogram } from "@/components/brand";
 import { Icon } from "@/components/icons";
 import { ButtonLink } from "@/components/ui";
@@ -15,7 +15,13 @@ export const Container = ({ children, className = "" }: { children: ReactNode; c
 export function PublicNav() {
   return (
     <nav className="flex flex-wrap items-center justify-between gap-6 py-[26px]">
-      <Logo />
+      <div className="flex min-w-0 items-center gap-4">
+        <Logo />
+        {/* Hidden at lg–xl, where the centre links leave no room for it; the menu carries it below lg. */}
+        <a href={portfolio()} className="hidden whitespace-nowrap border-l border-sage-line pl-4 text-[13px] font-semibold text-sage-ink hover:text-forest sm:inline lg:hidden xl:inline">
+          ← {PORTFOLIO_HOST}
+        </a>
+      </div>
       <NavLinks className="hidden gap-[34px] text-[15px] font-medium text-body-2 lg:flex" />
       <div className="hidden items-center gap-2.5 sm:flex">
         <Link href="/sign-in" className="rounded-full border-[1.5px] border-ink px-[18px] py-[11px] text-sm font-semibold">
@@ -35,6 +41,9 @@ export function PublicNav() {
               {l.label}
             </Link>
           ))}
+          <a href={portfolio()} className="rounded-xl px-3 py-2.5 text-sm font-semibold text-sage-ink hover:bg-sage">
+            ← {PORTFOLIO_HOST}
+          </a>
           <div className="mt-2 flex gap-2 border-t border-line pt-3">
             <ButtonLink href="/sign-in" variant="outline" size="sm" className="flex-1">
               Sign in
@@ -204,7 +213,14 @@ export function PublicFooter() {
           <a href={`mailto:${DOCTOR.email}`} className="hover:text-ink">{DOCTOR.email}</a>
           <a href={DOCTOR.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-ink">Instagram</a>
           <a href={DOCTOR.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-ink">LinkedIn</a>
-          <a href={DOCTOR.website} target="_blank" rel="noopener noreferrer" className="hover:text-ink">Media &amp; speaking</a>
+        </div>
+        <div className="flex flex-col gap-2.5">
+          <a href={portfolio()} className="font-extrabold text-forest hover:text-forest-deep">
+            {PORTFOLIO_HOST}
+          </a>
+          <a href={portfolio("/media")} className="hover:text-ink">Media</a>
+          <a href={portfolio("/about")} className="hover:text-ink">About Dr. Oparaji</a>
+          <a href={portfolio("/contact")} className="hover:text-ink">Press &amp; partnerships</a>
         </div>
         <div className="flex flex-wrap gap-14">
           <div className="flex flex-col gap-2.5">
