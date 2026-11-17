@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/market";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "@/components/icons";
 import { cn } from "@/lib/format";
+import { stripMarket } from "@/lib/market";
 import { PUBLIC_NAV } from "./nav-items";
 
 /**
@@ -52,7 +53,7 @@ export function MobileMenu({ children, className }: { children: ReactNode; class
 }
 
 export function NavLinks({ className, linkClassName }: { className?: string; linkClassName?: string }) {
-  const path = usePathname();
+  const path = stripMarket(usePathname());
   return (
     <div className={className}>
       {PUBLIC_NAV.map((l) => {

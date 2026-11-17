@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { revalidatePath } from "next/cache";
 import { Composer, Thread } from "@/components/messages";
@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { cn, moneyShort } from "@/lib/format";
 import { ensureDoctorConversation, loadThread, postMessage } from "@/lib/messaging";
 import { fmtShort, listDateLabel } from "@/lib/time";
+import { getMarketConfig } from "@/lib/market-server";
 
 export const metadata: Metadata = { title: "Messages" };
 
@@ -126,7 +127,7 @@ export default async function PatientMessagesPage({ searchParams }: PageProps<"/
           </div>
           <Thread messages={thread} />
           {isDoctor ? (
-            <Composer action={send} conversationId={active.id} note="Not for emergencies. Call 911 (US) or 112 (Nigeria)." />
+            <Composer action={send} conversationId={active.id} note={`Not for emergencies. Call ${(await getMarketConfig()).emergency}.`} />
           ) : (
             <p className="flex-none border-t border-line p-4 text-[13px] text-muted">The care team sends reminders here. Reply to Dr. Oparaji in her thread.</p>
           )}

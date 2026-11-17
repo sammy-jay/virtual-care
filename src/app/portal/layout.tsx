@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import { AppShell } from "@/components/portal/app-shell";
 import { Icon } from "@/components/icons";
 import { requirePatient } from "@/lib/auth/dal";

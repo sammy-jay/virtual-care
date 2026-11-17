@@ -8,7 +8,7 @@ const QA: [string, string, string][] = [
   ["Getting started", "What does the intro call cost?", "It is free, 15 minutes, and a good way to see whether the practice is right for you before an initial consultation."],
   ["Getting started", "Where are you licensed to see patients?", "Dr. Oparaji sees patients located in Texas, USA and in Nigeria. You confirm where you are when you book, because the rules depend on your location."],
   ["Visits", "How do video visits work?", "You get a private link in your portal. It opens in your browser on a phone or laptop — nothing to install. You can test your camera and microphone before you join."],
-  ["Visits", "Which time zone are times shown in?", "Your own. Houston is the practice’s time zone, and we show both when they differ, for example 7:00 PM in Lagos and 1:00 PM in Houston."],
+  ["Visits", "Which time zone are times shown in?", "Your own. Every time you see, from booking to reminders, is shown in the time zone on your account, and you can change it in Settings."],
   ["Visits", "Can I cancel or reschedule?", "Yes, free of charge up to 12 hours before your visit. Memberships can be paused or cancelled from your account at any time."],
   ["Billing", "Can I pay in naira?", "Yes. Nigerian patients can pay in naira by card or bank transfer. The amount is shown before you confirm."],
   ["Billing", "What does a membership include?", "Secure messaging, member pricing and, on higher plans, visits included each month. See the Membership page for details."],

@@ -16,6 +16,11 @@ enum Role {
   STAFF
 }
 
+enum Market {
+  US
+  NG
+}
+
 model User {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   email         String    @unique
@@ -23,6 +28,8 @@ model User {
   name          String
   phone         String?
   role          Role      @default(PATIENT)
+  /// Which patient site the account belongs to: US (root) or NG (/ng). See src/lib/market.ts.
+  market        Market    @default(US)
   timeZone      String    @default("Africa/Lagos")
   emailVerified DateTime?
   failedLogins  Int       @default(0)

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useMarketConfig } from "@/components/market";
 import { useActionState, useEffect, useState } from "react";
 import { AuthInput, SubmitButton, authSelectCls } from "@/components/auth/auth-split";
 import { CodeInput, PasswordStrength } from "@/components/auth/widgets";
@@ -10,13 +10,16 @@ import { doctorSignIn, requestReset, resetPassword, signIn, signUp, verifyEmail,
 
 export function SignUpForm({ next }: { next?: string }) {
   const [s, action, pending] = useActionState<FormState, FormData>(signUp, {});
-  const [tz, setTz] = useState("Africa/Lagos");
+  const site = useMarketConfig();
+  const [tz, setTz] = useState<string>(site.defaultTimeZone);
+  // Each site offers its own zones: US zones on the US site, West Africa Time on the Nigeria site.
+  const zones = TIME_ZONES.filter((z) => (site.id === "ng" ? z.id.startsWith("Africa/") : z.id.startsWith("America/") || z.id.startsWith("Pacific/")));
   useEffect(() => {
     const d = Intl.DateTimeFormat().resolvedOptions().timeZone;
     // Device time zone is only knowable in the browser, after hydration.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (TIME_ZONES.some((z) => z.id === d)) setTz(d);
-  }, []);
+    if (zones.some((z) => z.id === d)) setTz(d);
+  }, [zones]);
   const e = s.errors ?? {};
   const v = s.values ?? {};
   return (
@@ -25,7 +28,7 @@ export function SignUpForm({ next }: { next?: string }) {
       {s.message && <Alert tone="error">{s.message}</Alert>}
       <div className="grid gap-3.5 sm:grid-cols-2">
         <AuthInput label="Full name" name="name" autoComplete="name" placeholder="Your name" defaultValue={v.name} error={e.name} />
-        <AuthInput label="Phone (optional)" name="phone" type="tel" autoComplete="tel" placeholder="+234 …" defaultValue={v.phone} error={e.phone} />
+        <AuthInput label="Phone (optional)" name="phone" type="tel" autoComplete="tel" placeholder={site.phonePlaceholder} defaultValue={v.phone} error={e.phone} />
       </div>
       <AuthInput label="Email" name="email" type="email" autoComplete="email" placeholder="you@example.com" defaultValue={v.email} error={e.email} />
       <PasswordStrength error={e.password} />
@@ -34,7 +37,7 @@ export function SignUpForm({ next }: { next?: string }) {
           Time zone
         </label>
         <select id="timeZone" name="timeZone" value={v.timeZone || tz} onChange={(ev) => setTz(ev.target.value)} className={authSelectCls}>
-          {TIME_ZONES.map((z) => (
+          {zones.map((z) => (
             <option key={z.id} value={z.id}>
               {z.label}
             </option>

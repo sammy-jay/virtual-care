@@ -1,10 +1,11 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Plan } from "@prisma/client";
 import { moneyShort } from "@/lib/format";
 import { Check } from "./shell";
 
-/** The three membership cards shared by Home (02.1) and Membership (02.3). */
-export function PlanCards({ plans, ctaHref = (p: Plan) => `/sign-up?plan=${p.slug}` }: { plans: Plan[]; ctaHref?: (p: Plan) => string }) {
+/** The three membership cards shared by Home (02.1) and Membership (02.3). Nigeria shows naira prices. */
+export function PlanCards({ plans, currency = "USD", ctaHref = (p: Plan) => `/sign-up?plan=${p.slug}` }: { plans: Plan[]; currency?: "USD" | "NGN"; ctaHref?: (p: Plan) => string }) {
+  const price = (p: Plan) => (currency === "NGN" ? moneyShort(p.monthlyPriceNgn * 100, "NGN") : moneyShort(p.monthlyPriceCents));
   return (
     <div className="grid items-stretch gap-[22px] [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
       {plans.map((p) =>
@@ -15,8 +16,8 @@ export function PlanCards({ plans, ctaHref = (p: Plan) => `/sign-up?plan=${p.slu
               <span className="rounded-full bg-gold px-3 py-[5px] text-[12px] font-bold text-ink">Most popular</span>
             </div>
             <p className="mt-1.5 text-[15px] text-white/80">{p.tagline}</p>
-            <div className="mb-6 mt-7 font-display text-[60px] leading-none">
-              {moneyShort(p.monthlyPriceCents)}
+            <div className={`mb-6 mt-7 whitespace-nowrap font-display leading-none ${currency === "NGN" ? "text-[44px]" : "text-[60px]"}`}>
+              {price(p)}
               <span className="font-sans text-[15px] text-white/80"> /month</span>
             </div>
             <ul className="flex flex-1 flex-col gap-[13px] text-[15px]">
@@ -35,8 +36,8 @@ export function PlanCards({ plans, ctaHref = (p: Plan) => `/sign-up?plan=${p.slu
           <div key={p.id} className="flex flex-col rounded-[28px] border border-field bg-white p-8 md:p-9">
             <h3 className="font-display text-[30px] font-medium">{p.name}</h3>
             <p className="mt-1.5 text-[15px] text-[#5A6272]">{p.tagline}</p>
-            <div className="mb-6 mt-7 font-display text-[60px] leading-none">
-              {moneyShort(p.monthlyPriceCents)}
+            <div className={`mb-6 mt-7 whitespace-nowrap font-display leading-none ${currency === "NGN" ? "text-[44px]" : "text-[60px]"}`}>
+              {price(p)}
               <span className="font-sans text-[15px] text-[#5A6272]"> /month</span>
             </div>
             <ul className="flex flex-1 flex-col gap-[13px] text-[15px]">

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { AuthSplit, AuthTitle } from "@/components/auth/auth-split";
 import { ForgotForm } from "../forms";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import type { NotificationCategory } from "@prisma/client";
 import { revalidatePath } from "next/cache";

@@ -1,9 +1,10 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Icon } from "@/components/icons";
 import { Container, CtaBand, PublicHero, SectionHead } from "@/components/public/shell";
-import { getPlans, getVisitTypes } from "@/lib/care";
+import { getPlans, getPractice, getVisitTypes } from "@/lib/care";
 import { moneyShort } from "@/lib/format";
+import { getMarket } from "@/lib/market-server";
 
 export const metadata: Metadata = { title: "Services" };
 // Prices come from the database and change in doctor Settings.
@@ -17,7 +18,9 @@ const TINTS = [
 ];
 
 export default async function ServicesPage() {
-  const [types, plans] = await Promise.all([getVisitTypes(), getPlans()]);
+  const [types, plans, market, practice] = await Promise.all([getVisitTypes(), getPlans(), getMarket(), getPractice()]);
+  // Visits are billed in USD; the Nigeria site adds an approximate naira figure.
+  const approxNgn = (cents: number) => moneyShort(Math.round((cents * practice.ngnPerUsd) / 100 / 500) * 500 * 100, "NGN");
   const thrive = plans.find((p) => p.popular);
   const badge = (slug: string, id: string) => {
     if (slug === "intro") return "Free";
@@ -49,7 +52,10 @@ export default async function ServicesPage() {
                 <h3 className="mb-2 mt-[18px] font-display text-[28px] font-medium">{t.name}</h3>
                 <p className="flex-1 text-[15.5px] text-body-2">{t.tagline}</p>
                 <div className="mt-6 flex items-center justify-between">
-                  <span className="font-display text-[36px]">{t.alwaysFree ? "Free" : moneyShort(t.priceCents)}</span>
+                  <span>
+                    <span className="block font-display text-[36px] leading-tight">{t.alwaysFree ? "Free" : moneyShort(t.priceCents)}</span>
+                    {market === "ng" && !t.alwaysFree && <span className="num block text-[13px] text-body">about {approxNgn(t.priceCents)}</span>}
+                  </span>
                   <Link href={t.alwaysFree ? "/portal/book?type=intro" : `/portal/book?type=${t.slug}`} className="rounded-full bg-forest px-5 py-3 text-sm font-bold text-white">
                     Book
                   </Link>

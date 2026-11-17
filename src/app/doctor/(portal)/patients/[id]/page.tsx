@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import { LineChart } from "@/components/charts";
 import { ButtonLink, Card, Eyebrow, Row, StatusTag } from "@/components/ui";
 import { allowanceUsed } from "@/lib/care";

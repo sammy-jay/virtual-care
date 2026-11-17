@@ -1,13 +1,16 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Icon } from "@/components/icons";
 import { Container, PublicHero } from "@/components/public/shell";
 import { DOCTOR, PORTFOLIO_HOST, portfolio } from "@/lib/doctor-profile";
+import { getMarketConfig } from "@/lib/market-server";
 import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = { title: "Contact" };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const site = await getMarketConfig();
+  const ng = site.id === "ng";
   return (
     <>
       <PublicHero eyebrow="Contact" title="We would love to hear from you." lead="Questions about visits, membership or the practice? Send a note and we will reply within one business day." />
@@ -19,15 +22,11 @@ export default function ContactPage() {
             <ContactForm />
           </div>
           <div className="flex min-w-0 max-w-[440px] flex-[1_1_360px] flex-col gap-4">
+            {/* A virtual-only practice: hours, not an address. */}
             <div className="rounded-3xl bg-sage px-7 py-[26px]">
-              <div className="eyebrow">Houston</div>
-              <div className="mt-2 font-display text-[26px] leading-[1.2]">Mon–Fri · 9 AM – 5 PM CDT</div>
-              <div className="mt-1 text-[15px] text-body-2">Practice time zone</div>
-            </div>
-            <div className="rounded-3xl bg-gold-tint px-7 py-[26px]">
-              <div className="eyebrow !text-gold-ink">Lagos</div>
-              <div className="mt-2 font-display text-[26px] leading-[1.2]">Mon–Fri · 3 PM – 11 PM WAT</div>
-              <div className="mt-1 text-[15px] text-body-2">Same hours, shown in WAT</div>
+              <div className="eyebrow">Practice hours</div>
+              <div className="mt-2 font-display text-[26px] leading-[1.2]">{ng ? "Mon–Fri · 3 PM – 11 PM WAT" : "Mon–Fri · 9 AM – 5 PM Central"}</div>
+              <div className="mt-1 text-[15px] text-body-2">{ng ? "West Africa Time" : "US Central Time. Visit times are always shown in yours."}</div>
             </div>
             <Link href="/portal/book?type=intro" className="rounded-3xl bg-sky-tint px-7 py-[26px]">
               <div className="eyebrow !text-sky">Prefer to talk?</div>
@@ -54,7 +53,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <div className="font-bold">In an emergency</div>
-                <div className="mt-0.5 text-[15px] text-body-2">Do not use this form. Call 911 (US) or 112 / 767 (Nigeria).</div>
+                <div className="mt-0.5 text-[15px] text-body-2">Do not use this form. {site.emergencyLine[0].toUpperCase() + site.emergencyLine.slice(1)}.</div>
               </div>
             </div>
           </div>

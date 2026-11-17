@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Avatar, ButtonLink, Card, PageTitle } from "@/components/ui";
 import { requireDoctor } from "@/lib/auth/dal";
@@ -68,7 +68,14 @@ export default async function PatientsPage({ searchParams }: PageProps<"/doctor/
                     </span>
                   </td>
                   <td className="px-3">{p.memberships[0]?.plan.name ?? "Pay per visit"}</td>
-                  <td className="px-3">{p.profile?.city ?? "—"}</td>
+                  <td className="px-3">
+                    <span className="flex items-center gap-2">
+                      <span title={p.market === "NG" ? "Nigeria site (/ng)" : "US site"} className={p.market === "NG" ? "rounded-md bg-gold-tint px-1.5 py-0.5 text-[11px] font-extrabold text-gold-ink" : "rounded-md bg-sky-tint px-1.5 py-0.5 text-[11px] font-extrabold text-sky-ink"}>
+                        {p.market}
+                      </span>
+                      {p.profile?.city ?? "—"}
+                    </span>
+                  </td>
                   <td className="px-3">{next ? fmt(next, PRACTICE_TZ, "EEE d MMM") : last ? <span className="text-muted">Last {fmt(last, PRACTICE_TZ, "d MMM")}</span> : "—"}</td>
                   <td className="px-6 text-right">
                     <ButtonLink href={`/doctor/patients/${p.id}`} size="sm" variant="secondary">

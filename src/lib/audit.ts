@@ -12,7 +12,7 @@ export async function logAccess(actor: { id: string; name: string; role: string 
       actorLabel: label,
       action,
       patientId: patientId ?? null,
-      location: h.get("x-vercel-ip-city") ?? (actor ? "Houston" : "Server"),
+      location: h.get("x-vercel-ip-city") ?? (actor ? "Unknown" : "Server"),
     },
   });
 }

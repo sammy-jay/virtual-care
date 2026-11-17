@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Notification } from "@prisma/client";
 import { Icon, type IconName } from "./icons";
 import { cn } from "@/lib/format";

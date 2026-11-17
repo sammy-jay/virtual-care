@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { ButtonLink, Card, Eyebrow, Tag } from "@/components/ui";
 import { requirePatient } from "@/lib/auth/dal";
@@ -6,7 +6,7 @@ import { allowanceUsed, getActiveMembership, getPlans, getVisitTypes, messagingA
 import { db } from "@/lib/db";
 import { firstName, money, moneyShort } from "@/lib/format";
 import { profileSections } from "@/lib/profile";
-import { fmt, fmtShort, fmtTime, greeting, PRACTICE_TZ, zoneAbbr } from "@/lib/time";
+import { fmt, fmtShort, fmtTime, greeting, zoneAbbr } from "@/lib/time";
 import { priceLabel, roomWindow } from "@/lib/visit-labels";
 
 export const metadata: Metadata = { title: "Overview" };
@@ -111,7 +111,7 @@ export default async function OverviewPage() {
               {next.visitType.name} · {fmt(next.startsAt, tz, "EEE d MMM")}
             </div>
             <div className="relative mt-1 text-white/85">
-              {fmtTime(next.startsAt, tz)} {zoneAbbr(tz, next.startsAt)} · {fmtTime(next.startsAt, PRACTICE_TZ)} Houston · {next.visitType.durationMin} min
+              {fmtTime(next.startsAt, tz)} {zoneAbbr(tz, next.startsAt)} · {next.visitType.durationMin} min
             </div>
             <div className="relative mt-5 flex flex-wrap items-center gap-3">
               {next.status === "PENDING_PAYMENT" ? (

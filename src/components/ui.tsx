@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/format";
 import { Icon, type IconName } from "./icons";

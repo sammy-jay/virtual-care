@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import { PlanCards } from "@/components/public/plan-cards";
 import { Container, CtaBand, PublicHero } from "@/components/public/shell";
 import { getPlans } from "@/lib/care";
+import { MARKETS } from "@/lib/market";
+import { getMarket } from "@/lib/market-server";
 
 export const metadata: Metadata = { title: "Membership" };
 // Prices come from the database and change in doctor Settings.
 export const dynamic = "force-dynamic";
 
 export default async function MembershipPage() {
-  const plans = await getPlans();
+  const [plans, market] = await Promise.all([getPlans(), getMarket()]);
   const yes = "✓";
   const no = "—";
   const rows: [string, (p: (typeof plans)[number]) => string][] = [
@@ -25,7 +27,7 @@ export default async function MembershipPage() {
       <PublicHero eyebrow="Membership" title="Ongoing care, a message away." lead="Included visits, secure messaging and member pricing. Cancel any time." />
 
       <Container className="pt-20 md:pt-[110px]">
-        <PlanCards plans={plans} />
+        <PlanCards plans={plans} currency={MARKETS[market].planCurrency} />
 
         <div className="mt-20 overflow-x-auto rounded-[28px] border border-[#E6E8EC]">
           <table className="w-full min-w-[640px] border-collapse text-[15.5px]">

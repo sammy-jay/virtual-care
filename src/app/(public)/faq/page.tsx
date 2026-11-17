@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Container, PublicHero } from "@/components/public/shell";
 import { FaqList } from "./faq-list";

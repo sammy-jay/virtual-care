@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Modal, ModalActions } from "@/components/modal";
 import { Alert, Button, ButtonLink, Card, PageTitle, Row } from "@/components/ui";
@@ -42,7 +42,7 @@ export default async function AvailabilityPage({ searchParams }: PageProps<"/doc
     <div className="mx-auto max-w-[1200px]">
       <PageTitle
         title="Availability"
-        subtitle={`Hours shown in Houston time (${zoneAbbr(tz)}). Patients see their own time.`}
+        subtitle={`Hours shown in US Central Time (${zoneAbbr(tz)}). Patients see their own time.`}
         actions={
           <>
             <ButtonLink href="/doctor/availability?dialog=timeoff" variant="secondary">

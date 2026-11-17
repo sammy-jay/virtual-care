@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import { RefundModal } from "@/components/doctor/refund-modal";
 import { Alert, Card, Eyebrow, StatusTag } from "@/components/ui";
 import { allowanceUsed } from "@/lib/care";

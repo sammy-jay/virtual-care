@@ -1,10 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/market";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { cn } from "@/lib/format";
+import { stripMarket } from "@/lib/market";
 import { badgeValue, useBadges, type BadgeKey } from "./live-badges";
 
 /** `live` names the polled count shown as this item's badge (see live-badges.tsx). */
@@ -14,7 +15,7 @@ const isActive = (path: string, item: NavItem, root: string) =>
   item.href === root ? path === root : [item.href, ...(item.match ?? [])].some((h) => path === h || path.startsWith(h + "/"));
 
 export function SideNav({ items, root }: { items: NavItem[]; root: string }) {
-  const path = usePathname();
+  const path = stripMarket(usePathname());
   const live = useBadges();
   return (
     <nav className="flex flex-col gap-1" aria-label="Main">
@@ -56,7 +57,7 @@ export function BottomTabs({
   root: string;
   more?: { items: NavItem[]; user: { initials: string; name: string; caption: string }; signOut: () => Promise<void> };
 }) {
-  const path = usePathname();
+  const path = stripMarket(usePathname());
   const live = useBadges();
   const [open, setOpen] = useState(false);
   const [openedAt, setOpenedAt] = useState(path);
@@ -209,7 +210,7 @@ const CRUMBS: [RegExp, string][] = [
 ];
 
 export function Breadcrumb({ portal }: { portal: string }) {
-  const path = usePathname();
+  const path = stripMarket(usePathname());
   const crumb = CRUMBS.find(([r]) => r.test(path))?.[1] ?? "";
   return (
     <div className="truncate text-sm text-muted">

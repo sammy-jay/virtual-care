@@ -41,6 +41,32 @@ Mock payments: card `4000 0000 0000 0002` is declined. Any other valid card numb
 | `npm run test:e2e` | Playwright journeys (reseeds the database first) |
 | `npm run typecheck`, `npm run lint` | |
 
+## US and Nigeria sites
+
+The practice is virtual-only and runs two patient sites from one codebase:
+
+| | US site | Nigeria site |
+|---|---|---|
+| URLs | `/`, `/portal`, `/sign-in`… | `/ng`, `/ng/portal`, `/ng/sign-in`… |
+| Booking regions | the 50 states + DC (only licensed states are bookable) | Nigeria |
+| Plan prices | USD | NGN (visit prices show an approximate naira figure) |
+| Emergency line | 911 | 112 or 767 |
+
+- **Which site a visitor sees** ([src/proxy.ts](src/proxy.ts)) depends on their current location (`x-vercel-ip-country`, set by Vercel). Visitors in Nigeria get `/ng`; everyone else gets the root, and public pages redirect either way. There is no manual switch. When the location is unknown (local development), the URL is respected, so open `/ng` directly to test the Nigeria site.
+- **The patient portal follows the account, not the location**, so a patient who travels keeps their own portal. The `vc_market` cookie set at sign-in routes portal links, and the DAL corrects anything else.
+- **Accounts belong to one site** (`User.market`). Signing up on `/ng` creates a Nigeria account. A patient who opens the other site's portal is sent to the same page on their own site ([src/lib/auth/dal.ts](src/lib/auth/dal.ts)).
+- **The doctor portal (`/doctor`) is shared.** The patient list labels each patient US or NG.
+- **Links** use the site-aware `Link` from [src/components/market.tsx](src/components/market.tsx), which adds `/ng` on the Nigeria site.
+- **Licensure** lives in Settings → Licensure. The same records decide which states can book and draw the US map on the home and About pages.
+
+After deploying this change to a database with existing accounts, run once:
+
+```bash
+npx tsx --env-file-if-exists=.env scripts/backfill-market.mts
+```
+
+It sets `market` to NG for patients whose profile region is Nigeria and US for everyone else.
+
 ## Background jobs
 
 `GET /api/cron/tick` with `Authorization: Bearer $CRON_SECRET` handles:

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Alert, ButtonLink, Card, PageTitle } from "@/components/ui";
 import { requireDoctor } from "@/lib/auth/dal";

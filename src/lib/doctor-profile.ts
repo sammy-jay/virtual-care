@@ -10,6 +10,7 @@ export const DOCTOR = {
   name: "Dr. Nneoma Oparaji",
   postnominals: "MD, MHS, ABOM, DipABLM",
   title: "Obesity & Lifestyle Medicine Specialist",
+  languages: ["English", "Igbo"],
   email: "contact@nneomaoparaji.com",
   website: PORTFOLIO_URL,
   instagram: "https://www.instagram.com/nneomaoparajimd",

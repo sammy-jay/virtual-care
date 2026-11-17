@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Card } from "@/components/ui";
 import { requirePatient } from "@/lib/auth/dal";
@@ -41,7 +41,7 @@ export default async function TimeZonesPage({ searchParams }: PageProps<"/portal
             <span>
               Your time · {zoneCity(tz)} ({zoneAbbr(tz)})
             </span>
-            <span>Doctor · Houston ({zoneAbbr(PRACTICE_TZ)})</span>
+            <span>Dr. Oparaji · US Central ({zoneAbbr(PRACTICE_TZ)})</span>
           </div>
           {daySlots.length === 0 && <p className="p-5 text-sm text-body">No open times that day.</p>}
           {daySlots.map((s) => {
@@ -67,7 +67,7 @@ export default async function TimeZonesPage({ searchParams }: PageProps<"/portal
                 {fmt(selected, tz, "EEE d MMM")} · {fmtTime(selected, tz)} {zoneAbbr(tz, selected)}
               </div>
               <div className="text-sm text-body">
-                {fmtTime(selected, PRACTICE_TZ)} {zoneAbbr(PRACTICE_TZ, selected)} · Houston
+                {fmtTime(selected, PRACTICE_TZ)} {zoneAbbr(PRACTICE_TZ, selected)} for Dr. Oparaji
               </div>
               <Link href={`/portal/book?type=${vt.slug}&slot=${selected.toISOString()}`} className="mt-4 block rounded-full bg-forest py-3 text-center font-bold text-white">
                 Confirm time

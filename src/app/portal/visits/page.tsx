@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Modal, ModalActions, ModalSummary } from "@/components/modal";
 import { Alert, Button, ButtonLink, Card, EmptyState, PageTitle, Row, StatusTag } from "@/components/ui";
@@ -100,7 +100,7 @@ export default async function MyVisitsPage({ searchParams }: PageProps<"/portal/
               {selected.visitType.name} · {fmt(selected.startsAt, tz, "EEE d MMM")}
             </div>
             <div className="num mb-2 mt-1 text-sm text-body">
-              {fmtTime(selected.startsAt, tz)} {zoneAbbr(tz, selected.startsAt)} · {fmtTime(selected.startsAt, PRACTICE_TZ)} Houston
+              {fmtTime(selected.startsAt, tz)} {zoneAbbr(tz, selected.startsAt)} · {fmtTime(selected.startsAt, PRACTICE_TZ)} {zoneAbbr(PRACTICE_TZ, selected.startsAt)} for Dr. Oparaji
             </div>
             <Row label="Price">{priceLabel(selected)}</Row>
             <Row label="Status">

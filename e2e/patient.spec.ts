@@ -3,7 +3,8 @@ import { db, latestEmail, PASSWORD, pickFirstSlot, signIn } from "./helpers";
 
 test("new patient: sign up → verify → profile → free intro call → confirmed", async ({ page }) => {
   const email = `e2e+${Date.now()}@example.com`;
-  await page.goto("/sign-up");
+  // A Nigeria-based patient signs up on the Nigeria site.
+  await page.goto("/ng/sign-up");
   // Errors state (03.2)
   await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByText(/Please fix the \d items? below/)).toBeVisible();
@@ -54,7 +55,8 @@ test("booking from an unlicensed region is blocked (04.8)", async ({ page }) => 
   await page.goto("/portal/book?type=initial-consultation");
   await pickFirstSlot(page);
   await page.getByLabel("Reason for visit").fill("Second opinion");
-  await page.getByLabel("Where are you right now?").selectOption("GH");
+  // Kentucky is not one of the states Dr. Oparaji is licensed in.
+  await page.getByLabel("Where are you right now?").selectOption("US-KY");
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Continue to payment" }).click();
   await expect(page.getByRole("heading", { name: "We cannot see you from this location" })).toBeVisible();

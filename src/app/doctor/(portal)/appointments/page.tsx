@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { addDays } from "date-fns";
 import { Modal, ModalActions, ModalSummary } from "@/components/modal";

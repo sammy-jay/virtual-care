@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link, { EmergencyNote } from "@/components/market";
 import type { ComponentProps, ReactNode } from "react";
 import { Dot, Monogram } from "@/components/brand";
 import { Icon, type IconName } from "@/components/icons";
@@ -8,7 +8,7 @@ import { cn } from "@/lib/format";
 
 const PERKS: [IconName, string, string][] = [
   ["video", "Free 15-minute intro call", "Meet Dr. Oparaji before you commit."],
-  ["globe", "Times in your own time zone", "Houston, Lagos or anywhere between."],
+  ["globe", "Times in your own time zone", "A virtual-only practice: book from home, wherever you are."],
   ["shield", "Private by design", "Encrypted records. Every access is logged."],
 ];
 
@@ -42,7 +42,7 @@ export function AuthSplit({ children, perks = false }: { children: ReactNode; pe
               </div>
             ))}
         </div>
-        <div className="relative text-[13px] text-white/60">Not for emergencies. Call 911 (US) or 112 (Nigeria).</div>
+        <EmergencyNote className="relative text-[13px] text-white/60" />
       </div>
       <div className="flex min-w-0 flex-1 flex-col lg:w-1/2 lg:flex-none">
         <div className="flex items-center justify-between border-b border-line px-4 py-3 lg:hidden">
@@ -54,7 +54,7 @@ export function AuthSplit({ children, perks = false }: { children: ReactNode; pe
         <div className="flex flex-1 items-center justify-center px-4 py-10 sm:p-12">
           <div className="w-full max-w-[440px]">{children}</div>
         </div>
-        <div className="px-4 pb-4 text-center text-[13px] text-muted lg:hidden">Not for emergencies. Call 911 (US) or 112 (Nigeria).</div>
+        <EmergencyNote className="block px-4 pb-4 text-center text-[13px] text-muted lg:hidden" />
       </div>
     </div>
   );

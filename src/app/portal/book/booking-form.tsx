@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/market";
 import { useActionState, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
 import { Alert, FieldError, Tag } from "@/components/ui";
@@ -186,7 +186,7 @@ export function BookingForm({
                   <b>
                     {day?.label} · {chosen.label} {zoneAbbr}
                   </b>{" "}
-                  is <b>{chosen.doctor}</b> in Houston. Times shown in your zone.{" "}
+                  is <b>{chosen.doctor}</b> for Dr. Oparaji (US Central). Times shown in your zone.{" "}
                   <Link href={`/portal/book/time?type=${opt?.slug}&day=${dayKey}`} className="font-bold text-forest">
                     Compare
                   </Link>

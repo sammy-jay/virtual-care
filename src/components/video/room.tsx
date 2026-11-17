@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useMarketHref } from "@/components/market";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
 import { cn } from "@/lib/format";
@@ -47,6 +48,7 @@ export function VideoRoom({
   endAction?: (f: FormData) => Promise<void>;
 }) {
   const router = useRouter();
+  const leaveHref = useMarketHref()(onLeaveHref);
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
   const [phase, setPhase] = useState<Phase>(role === "doctor" ? "live" : "waiting");
@@ -91,7 +93,7 @@ export function VideoRoom({
         }
         if (s.endedAt || s.status === "COMPLETED" || s.status === "NO_SHOW" || s.status === "CANCELED") {
           setPhase("ended");
-          router.push(onLeaveHref);
+          router.push(leaveHref);
         }
       } catch {
         setOnline(false);
@@ -103,7 +105,7 @@ export function VideoRoom({
       window.removeEventListener("online", on);
       window.removeEventListener("offline", off);
     };
-  }, [appointmentId, onLeaveHref, router]);
+  }, [appointmentId, leaveHref, router]);
 
   const elapsed = admittedAt ? Math.max(0, Math.floor((now - admittedAt) / 1000)) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
@@ -176,7 +178,7 @@ export function VideoRoom({
             </button>
           </form>
         ) : (
-          <button onClick={() => router.push(onLeaveHref)} className="flex min-h-12 items-center gap-2 rounded-full bg-coral px-6 font-bold text-white">
+          <button onClick={() => router.push(leaveHref)} className="flex min-h-12 items-center gap-2 rounded-full bg-coral px-6 font-bold text-white">
             <Icon name="leave" size={20} />
             Leave
           </button>

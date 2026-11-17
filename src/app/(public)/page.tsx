@@ -1,14 +1,20 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import { Icon, type IconName } from "@/components/icons";
 import { PlanCards } from "@/components/public/plan-cards";
 import { Container, CtaBand, FeaturedIn, Portrait, PublicHero, SectionHead } from "@/components/public/shell";
 import { loadOpenSlots, visitorTimeZone, zoneLongName } from "@/lib/booking";
 import { getPlans, getVisitTypes } from "@/lib/care";
 import { DOCTOR } from "@/lib/doctor-profile";
+import { getLicensure } from "@/lib/licensure";
+import { MARKETS } from "@/lib/market";
+import { getMarket } from "@/lib/market-server";
+import { LicensureMap } from "@/components/public/licensure-map";
 import { dayKey, fmt, fmtTime, nowMs } from "@/lib/time";
 
 export default async function HomePage() {
-  const [visitTypes, plans, tz] = await Promise.all([getVisitTypes(), getPlans(), visitorTimeZone()]);
+  const [visitTypes, plans, tz, market, licensure] = await Promise.all([getVisitTypes(), getPlans(), visitorTimeZone(), getMarket(), getLicensure()]);
+  const ng = market === "ng";
+  const stateCount = licensure.states.length;
   const intro = visitTypes.find((v) => v.alwaysFree);
   const slots = intro ? await loadOpenSlots(intro, new Date(), 14) : [];
   const firstDay = slots[0] ? dayKey(slots[0], tz) : null;
@@ -23,7 +29,7 @@ export default async function HomePage() {
           <div className="min-w-0 flex-[1_1_560px]">
             <div className="inline-flex items-center gap-2.5 rounded-full border border-[#E1ECE6] bg-white py-[7px] pl-2.5 pr-3.5 text-[13px] font-semibold text-forest">
               <span className="size-2 rounded-full bg-coral" />
-              Houston &nbsp;·&nbsp; Lagos &nbsp;·&nbsp; Online
+              {ng ? "Virtual care · Across Nigeria" : `Virtual care · Licensed in ${stateCount} US states`}
             </div>
             <h1 className="h-display mt-7 text-[52px] leading-[.98] tracking-[-.025em] md:text-[84px]">
               Healthy living that <em className="italic text-forest">honours</em> who you are.
@@ -123,7 +129,7 @@ export default async function HomePage() {
           <div className="mt-16 grid border-t border-sage-line [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
             {[
               ["01", "text-forest", "Create your account", "A short, secure intake about your history and goals."],
-              ["02", "text-gold", "Book a visit", "Pick a time in your own time zone — Houston, Lagos or between."],
+              ["02", "text-gold", "Book a visit", ng ? "Pick a time that suits you, shown in West Africa Time." : "Pick a time in your own time zone, from any state where she is licensed."],
               ["03", "text-coral", "Meet by video", "A private visit from your phone or laptop. Nothing to install."],
               ["04", "text-sky", "Stay supported", "Message Dr. Oparaji between visits and follow your care plan."],
             ].map(([n, c, t, b], i) => (
@@ -137,10 +143,30 @@ export default async function HomePage() {
         </Container>
       </div>
 
+      {!ng && (
+        <Container className="pt-20 md:pt-[110px]">
+          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
+            <div>
+              <div className="text-[13px] font-bold uppercase tracking-[.16em] text-forest">Where she practices</div>
+              <h2 className="h-display mt-4 text-[40px] md:text-[52px]">
+                Licensed in <span className="num text-forest">{stateCount}</span> states.
+              </h2>
+              <p className="mt-5 text-body-2">
+                A virtual-only practice: no waiting room, no commute. Book from home in any state where Dr. Oparaji is licensed, and we check your location when you book.
+              </p>
+              <Link href="/portal/book?type=intro" className="mt-7 inline-flex items-center gap-2.5 rounded-full bg-forest px-7 py-4 font-bold text-white">
+                Book a free intro call <Icon name="arrow" size={18} strokeWidth={2.2} />
+              </Link>
+            </div>
+            <LicensureMap states={licensure.states} />
+          </div>
+        </Container>
+      )}
+
       <Container className="pt-20 md:pt-[110px]">
         <SectionHead center eyebrow="Membership" title="Ongoing care, a message away." lead="Included visits, secure messaging and member pricing. Cancel any time." />
         <div className="mt-[60px]">
-          <PlanCards plans={plans} />
+          <PlanCards plans={plans} currency={MARKETS[market].planCurrency} />
         </div>
         <p className="mt-[26px] text-center text-[13px] text-[#5A6272]">Prices are illustrative until confirmed by the practice.</p>
       </Container>
@@ -155,7 +181,7 @@ export default async function HomePage() {
             <h2 className="h-display mt-4 text-[40px] md:text-[52px]">{DOCTOR.name}</h2>
             <div className="num mt-2 text-[15px] font-semibold tracking-wide text-forest">{DOCTOR.postnominals}</div>
             <p className="mt-6 text-body-2">
-              Board certified in internal medicine, obesity medicine and lifestyle medicine, and trained across Nigeria and the United States. She lives between Houston and Lagos, and her commentary on family health has featured in more than 50 media outlets.
+              Board certified in internal medicine, obesity medicine and lifestyle medicine, trained across Nigeria and the United States, and fluent in {DOCTOR.languages.join(" and ")}. Her commentary on family health has featured in more than 50 media outlets.
             </p>
             <p className="mt-4 text-body-2">Her approach is simple: lasting health starts with respect for your culture, your food and your faith.</p>
             <ul className="mt-6 flex flex-wrap gap-2">

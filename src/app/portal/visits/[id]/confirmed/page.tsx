@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Icon, type IconName } from "@/components/icons";
@@ -47,7 +47,7 @@ export default async function ConfirmedPage({ params }: PageProps<"/portal/visit
           </div>
           <Row label="When">{fmtWhen(a.startsAt, user.timeZone)}</Row>
           <Row label="Doctor’s time">
-            {fmtTime(a.startsAt, PRACTICE_TZ)} {zoneAbbr(PRACTICE_TZ, a.startsAt)} · Houston
+            {fmtTime(a.startsAt, PRACTICE_TZ)} {zoneAbbr(PRACTICE_TZ, a.startsAt)} for Dr. Oparaji
           </Row>
           <Row label="Price">{priceLabel(a)}</Row>
           {a.usesAllowance && a.membership && (

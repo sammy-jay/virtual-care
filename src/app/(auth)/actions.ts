@@ -11,6 +11,8 @@ import { cookies } from "next/headers";
 import { createSession, destroySession, randomToken, revokeAllSessions, sha256 } from "@/lib/auth/session";
 import { consumeEmailCode, findResetToken, issueEmailCode, issueResetToken } from "@/lib/auth/tokens";
 import { TIME_ZONES } from "@/lib/time";
+import { fromDbMarket, toDbMarket, withMarket } from "@/lib/market";
+import { getMarket, rememberMarket } from "@/lib/market-server";
 
 export type FormState = { errors?: Record<string, string>; message?: string; values?: Record<string, string>; attemptsLeft?: number };
 
@@ -51,8 +53,11 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
   if (await db.user.findUnique({ where: { email: lower } })) {
     return { errors: { email: "An account with this email already exists. Sign in instead." }, values, message: "Please fix the 1 item below to continue." };
   }
+  // The account belongs to the site it was created on (US at the root, Nigeria under /ng).
+  const market = await getMarket();
   const user = await db.user.create({
     data: {
+      market: toDbMarket(market),
       name,
       phone: phone || null,
       email: lower,
@@ -60,13 +65,15 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
       timeZone,
       consentAt: new Date(),
       notifyPrefs: { visitReminders: true, newMessages: true, carePlans: true, productNews: false },
-      profile: { create: { region: timeZone === "Africa/Lagos" ? "NG" : timeZone === "America/Chicago" ? "US-TX" : null } },
+      // Nigeria accounts are in Nigeria; US patients confirm their state when they book.
+      profile: { create: { region: market === "ng" ? "NG" : null } },
     },
   });
   const code = await issueEmailCode(user.id);
   await sendEmail(user.email, { template: "verify", code });
   await createSession(user.id, false);
-  redirect(`/verify-email${form.get("next") ? `?next=${encodeURIComponent(String(form.get("next")))}` : ""}`);
+  await rememberMarket(market);
+  redirect(withMarket(`/verify-email${form.get("next") ? `?next=${encodeURIComponent(String(form.get("next")))}` : ""}`, market));
 }
 
 // ─── Verify email (03.8) ─────────────────────────────────────────────────────
@@ -136,12 +143,14 @@ export async function signIn(_: FormState, form: FormData): Promise<FormState> {
     redirect(`/sign-in/code?remember=${form.get("remember") === "on" ? 1 : 0}&next=${encodeURIComponent(safeNext(form.get("next"), "/portal"))}`);
   }
   await createSession(user.id, form.get("remember") === "on");
+  const home = fromDbMarket(user.market);
+  await rememberMarket(home);
   if (!user.emailVerified) {
     const code = await issueEmailCode(user.id);
     await sendEmail(user.email, { template: "verify", code });
-    redirect("/verify-email");
+    redirect(withMarket("/verify-email", home));
   }
-  redirect(safeNext(form.get("next"), "/portal"));
+  redirect(withMarket(safeNext(form.get("next"), "/portal"), home));
 }
 
 /** Second step for patients with two-step sign-in on (05.12). */
@@ -156,7 +165,9 @@ export async function verifySignInCode(_: FormState, form: FormData): Promise<Fo
   await db.authToken.update({ where: { id: pending.id }, data: { usedAt: new Date() } });
   jar.delete("vc_2fa");
   await createSession(pending.userId, form.get("remember") === "1");
-  redirect(safeNext(form.get("next"), "/portal"));
+  const home = fromDbMarket(pending.user.market);
+  await rememberMarket(home);
+  redirect(withMarket(safeNext(form.get("next"), "/portal"), home));
 }
 
 export async function doctorSignIn(_: FormState, form: FormData): Promise<FormState> {

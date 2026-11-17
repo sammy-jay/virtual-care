@@ -1,9 +1,9 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Modal, ModalActions } from "@/components/modal";
 import { Button, ButtonLink, Card, PageTitle, StatusTag } from "@/components/ui";
 import { requireDoctor } from "@/lib/auth/dal";
-import { REGIONS } from "@/lib/booking";
+import { ALL_REGIONS } from "@/lib/regions";
 import { db } from "@/lib/db";
 import { fmt } from "@/lib/time";
 import { saveLicense } from "../../../actions";
@@ -44,7 +44,7 @@ export default async function LicensurePage({ searchParams }: PageProps<"/doctor
               <div>
                 <label htmlFor="rc" className="label">Region</label>
                 <select id="rc" name="regionCode" defaultValue={editing?.regionCode} className="field">
-                  {REGIONS.map((r) => (
+                  {ALL_REGIONS.map((r) => (
                     <option key={r.code} value={r.code}>{r.name}</option>
                   ))}
                 </select>

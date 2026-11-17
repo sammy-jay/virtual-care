@@ -6,6 +6,7 @@ import { PrismaClient, type Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { fromZonedTime, formatInTimeZone } from "date-fns-tz";
 import { explicitNulls } from "./explicit-nulls";
+import { US_STATES } from "../src/lib/regions";
 
 const db = new PrismaClient().$extends(explicitNulls);
 const CDT = "America/Chicago";
@@ -66,15 +67,17 @@ async function main() {
   const family = await db.plan.create({ data: { slug: "family-focus", name: "Family Focus", tagline: "For households building habits together.", monthlyPriceCents: 22900, monthlyPriceNgn: 343500, discountPct: 15, includedVisits: 3, includedVisitTypeIds: [followUp.id, coaching.id], includedLabel: "3 visits + coaching", maxFamilyMembers: 4, sortOrder: 2, features: ["Everything in Thrive", "3 visits included each month", "Family coaching included", "Add up to 3 family members"] } });
 
   // ── Licensure (09.17) ──
+  // US states Dr. Oparaji is licensed in (from the practice). Numbers and renewal dates are entered
+  // by the doctor in Settings → Licensure; none are invented here.
+  const LICENSED_STATES = ["OR", "WA", "TX", "NY", "GA", "VA", "FL", "CA", "MI", "OH", "MA", "WI", "CO", "AL", "PA", "HI", "ID", "MO", "TN", "NC", "UT", "IN", "NJ", "IL", "KS", "MD", "OK", "AZ", "NV"];
   await db.license.createMany({
     data: [
-      { regionCode: "US-TX", regionName: "Texas, USA", credential: "Medical license", numberMask: "TX-••4821", renewsAt: new Date("2027-08-31"), status: "ACTIVE" },
-      { regionCode: "NG", regionName: "Nigeria", credential: "MDCN registration", numberMask: "••7710", renewsAt: new Date("2026-12-31"), status: "ACTIVE" },
-      { regionCode: "US-CA", regionName: "California, USA", status: "BLOCKED" },
+      ...LICENSED_STATES.map((abbr) => ({ regionCode: `US-${abbr}`, regionName: US_STATES.find((s) => s.code === `US-${abbr}`)!.name, credential: "State medical license", status: "ACTIVE" as const })),
+      { regionCode: "NG", regionName: "Nigeria", credential: "MDCN registration", status: "ACTIVE" },
     ],
   });
 
-  // ── Availability (10.3), Houston time ──
+  // ── Availability (10.3), practice time (US Central) ──
   await db.availabilityWindow.createMany({
     data: [
       { weekday: 1, startMin: 13 * 60, endMin: 18 * 60 },
@@ -100,6 +103,7 @@ async function main() {
     db.user.create({
       data: {
         email: p.email, passwordHash, name: p.name, phone: p.phone, timeZone: p.tz, emailVerified: now, consentAt: now,
+        market: p.region === "NG" ? "NG" : "US",
         createdAt: new Date(now.getTime() - p.joinedDaysAgo * day),
         notifyPrefs: { visitReminders: true, newMessages: true, carePlans: true, productNews: false },
         profile: { create: { city: p.city, region: p.region, ...profile } },

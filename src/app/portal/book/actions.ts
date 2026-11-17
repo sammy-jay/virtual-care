@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { requirePatient } from "@/lib/auth/dal";
-import { loadOpenSlots, REGIONS } from "@/lib/booking";
+import { bookingRegions, loadOpenSlots } from "@/lib/booking";
+import { regionName } from "@/lib/regions";
 import { getPractice, hasPriorVisit, quoteVisit } from "@/lib/care";
 import { confirmBooked } from "@/lib/visits";
 
@@ -30,7 +31,7 @@ export async function bookVisit(_: BookState, form: FormData): Promise<BookState
   const startsAt = slot ? new Date(slot) : null;
   if (!startsAt || Number.isNaN(startsAt.getTime())) errors.slot = "Choose a time.";
   if (reason.length < 3) errors.reason = "Tell us briefly why you are booking.";
-  if (!REGIONS.some((r) => r.code === region)) errors.region = "Confirm your location.";
+  if (!(await bookingRegions()).some((r) => r.code === region)) errors.region = "Confirm your location.";
   if (!consent) errors.consent = "Required.";
   if (Object.keys(errors).length) return { errors, message: `Fix ${Object.keys(errors).length} thing${Object.keys(errors).length === 1 ? "" : "s"} to continue.` };
 
@@ -39,7 +40,7 @@ export async function bookVisit(_: BookState, form: FormData): Promise<BookState
   // Licensure (04.8)
   const license = await db.license.findUnique({ where: { regionCode: region } });
   if (!license || license.status !== "ACTIVE") {
-    return { unlicensed: REGIONS.find((r) => r.code === region)?.name ?? region };
+    return { unlicensed: regionName(region) };
   }
 
   // Consent reconfirm when the location differs from the profile (04.7)

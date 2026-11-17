@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { HBar } from "@/components/charts";
 import { Card, Eyebrow, PageTitle } from "@/components/ui";

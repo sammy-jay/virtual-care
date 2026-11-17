@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { ReactNode } from "react";
 import { Monogram } from "@/components/brand";
 import { Icon } from "@/components/icons";

@@ -5,6 +5,9 @@ import { db } from "@/lib/db";
 import { getPractice } from "@/lib/care";
 import { openSlots } from "@/lib/slots";
 import { TIME_ZONES } from "@/lib/time";
+import { MARKETS } from "@/lib/market";
+import { getMarket } from "@/lib/market-server";
+import { MARKET_REGIONS } from "@/lib/regions";
 
 /** An unpaid booking holds its slot for this long. */
 export const HOLD_MINUTES = 30;
@@ -54,7 +57,7 @@ export async function loadOpenSlots(visitType: Pick<VisitType, "id" | "durationM
 
 export const TZ_COOKIE = "vc_tz";
 
-/** Visitor time zone for public pages: cookie set by <TimeZoneSync>, else Lagos. */
+/** Visitor time zone for public pages: cookie set by <TimeZoneSync>, else the site default (Lagos / New York). */
 export async function visitorTimeZone() {
   const tz = (await cookies()).get(TZ_COOKIE)?.value;
   if (tz) {
@@ -63,7 +66,7 @@ export async function visitorTimeZone() {
       return tz;
     } catch {}
   }
-  return "Africa/Lagos";
+  return MARKETS[await getMarket()].defaultTimeZone;
 }
 
 export function zoneLongName(tz: string, at = new Date()) {
@@ -72,13 +75,7 @@ export function zoneLongName(tz: string, at = new Date()) {
   return p.find((x) => x.type === "timeZoneName")?.value ?? TIME_ZONES.find((z) => z.id === tz)?.label ?? tz;
 }
 
-/** Regions a patient can say they are in at booking. Licensure decides which are bookable. */
-export const REGIONS = [
-  { code: "NG", name: "Nigeria" },
-  { code: "US-TX", name: "Texas, USA" },
-  { code: "US-CA", name: "California, USA" },
-  { code: "US-OTHER", name: "Elsewhere in the USA" },
-  { code: "GH", name: "Ghana" },
-  { code: "UK", name: "United Kingdom" },
-  { code: "OTHER", name: "Somewhere else" },
-];
+/** Regions a patient can say they are in at booking on this site. Licensure decides which are bookable. */
+export async function bookingRegions() {
+  return MARKET_REGIONS[await getMarket()];
+}

@@ -1,7 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/market";
 import type { ReactNode } from "react";
 import { DOCTOR, PORTFOLIO_HOST, portfolio } from "@/lib/doctor-profile";
+import { getLicensure } from "@/lib/licensure";
+import { getMarket } from "@/lib/market-server";
 import { Dot, EmergencyBar, Logo, Monogram } from "@/components/brand";
 import { Icon } from "@/components/icons";
 import { ButtonLink } from "@/components/ui";
@@ -12,11 +14,12 @@ export const Container = ({ children, className = "" }: { children: ReactNode; c
   <div className={`mx-auto w-full max-w-[1240px] px-4 sm:px-10 ${className}`}>{children}</div>
 );
 
-export function PublicNav() {
+export async function PublicNav() {
+  const market = await getMarket();
   return (
     <nav className="flex items-center justify-between gap-6 py-3.5 md:py-[18px]">
       <div className="flex min-w-0 items-center gap-4">
-        <Logo />
+        <Logo subtitle={market === "ng" ? "Virtual care · Nigeria" : "Virtual care"} />
         {/* Hidden at lg–xl, where the centre links leave no room for it; the menu carries it below lg. */}
         <a href={portfolio()} className="hidden whitespace-nowrap border-l border-sage-line pl-4 text-[13px] font-semibold text-sage-ink hover:text-forest sm:inline lg:hidden xl:inline">
           ← {PORTFOLIO_HOST}
@@ -196,7 +199,11 @@ export function CtaBand() {
   );
 }
 
-export function PublicFooter() {
+export async function PublicFooter() {
+  const market = await getMarket();
+  const { states } = await getLicensure();
+  // Virtual-only practice: describe reach, never a city.
+  const reach = market === "ng" ? "Virtual care for patients across Nigeria" : `Virtual-only practice · licensed in ${states.length} US states`;
   return (
     <footer className="flex flex-1 flex-col bg-sage text-sm text-sage-ink">
       <Container className="flex flex-wrap justify-between gap-10 py-14">
@@ -211,7 +218,8 @@ export function PublicFooter() {
           </div>
           <div className="font-display text-[22px] text-ink">Dr. Nneoma Oparaji</div>
           <p className="mt-2.5">Faith-centered, culturally rooted virtual care for African families.</p>
-          <p className="mt-2.5 text-[13px]">{DOCTOR.postnominals} · Houston, TX & Lagos, Nigeria</p>
+          <p className="mt-2.5 text-[13px]">{DOCTOR.postnominals}</p>
+          <p className="mt-1 text-[13px]">{reach}</p>
         </div>
         <div className="flex flex-col gap-2.5">
           <span className="font-extrabold text-forest">Connect</span>
@@ -252,10 +260,11 @@ export function PublicFooter() {
   );
 }
 
-export function PublicPage({ children }: { children: ReactNode }) {
+export async function PublicPage({ children }: { children: ReactNode }) {
+  const market = await getMarket();
   return (
     <div className="flex min-h-screen flex-col bg-white text-[17px] leading-[1.55] text-ink">
-      <EmergencyBar />
+      <EmergencyBar market={market} />
       <PublicHeader />
       {children}
     </div>

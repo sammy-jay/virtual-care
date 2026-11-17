@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requirePatient } from "@/lib/auth/dal";
-import { loadOpenSlots, REGIONS } from "@/lib/booking";
+import { bookingRegions, loadOpenSlots } from "@/lib/booking";
 import { allowanceUsed, getActiveMembership, getPlans, getVisitTypes, hasPriorVisit, quoteVisit } from "@/lib/care";
 import { db } from "@/lib/db";
 import { dayKey, fmt, fmtTime, PRACTICE_TZ, utcOffsetLabel, zoneAbbr, zoneCity } from "@/lib/time";
@@ -86,7 +86,7 @@ export default async function BookPage({ searchParams }: PageProps<"/portal/book
       tz={tz}
       zone={`${zoneAbbr(tz)} (${zoneCity(tz)}, ${utcOffsetLabel(tz)})`}
       zoneAbbr={zoneAbbr(tz)}
-      regions={REGIONS}
+      regions={await bookingRegions()}
       defaultRegion={profile?.region ?? ""}
       sideNote={sideNote}
       planName={membership?.plan.name ?? null}

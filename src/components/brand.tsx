@@ -1,6 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/market";
 import { cn } from "@/lib/format";
+import { MARKETS, type Market } from "@/lib/market";
 
 const MARK = { src: "/brand/nd-mark.png", w: 445, h: 322 };
 
@@ -41,11 +42,13 @@ export function Logo({ href = "/", subtitle = "Virtual care" }: { href?: string;
   );
 }
 
-export function EmergencyBar() {
+/** Gold bar above the public header: the emergency line for this site (911, or 112/767 in Nigeria). */
+export function EmergencyBar({ market }: { market: Market }) {
+  const site = MARKETS[market];
   return (
     <div className="border-b border-gold-line bg-gold-tint px-4 py-[9px] text-center text-[13px] text-[#5B4210] sm:px-6">
-      <span className="hidden sm:inline">Virtual care is not for emergencies. If you think you are having one, call 911 (US) or 112 (Nigeria).</span>
-      <span className="sm:hidden">Emergency: 911 · 112 / 767</span>
+      <span className="hidden sm:inline">Virtual care is not for emergencies. If you think you are having one, {site.emergencyLine}.</span>
+      <span className="sm:hidden">Emergency: {site.emergency}</span>
     </div>
   );
 }

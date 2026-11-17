@@ -1,12 +1,15 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Container, CtaBand, FeaturedIn, Portrait, PublicHero, SectionHead } from "@/components/public/shell";
 import { Icon } from "@/components/icons";
 import { DOCTOR, portfolio } from "@/lib/doctor-profile";
+import { getLicensure } from "@/lib/licensure";
+import { getMarket } from "@/lib/market-server";
+import { LicensureMap } from "@/components/public/licensure-map";
 
 export const metadata: Metadata = {
   title: "About",
-  description: `${DOCTOR.name}, ${DOCTOR.postnominals}: board certified in internal, obesity and lifestyle medicine. Houston, TX and Lagos, Nigeria.`,
+  description: `${DOCTOR.name}, ${DOCTOR.postnominals}: board certified in internal, obesity and lifestyle medicine. Virtual care across the United States and Nigeria.`,
 };
 
 const FOCUS = [
@@ -23,7 +26,10 @@ const VALUES = [
   ["04", "text-sky", "Practical", "Habits sized for real family life and busy mums, not fad diets."],
 ] as const;
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const [market, { states }] = await Promise.all([getMarket(), getLicensure()]);
+  const ng = market === "ng";
+  const stats: (readonly [string, string])[] = [DOCTOR.stats[0], DOCTOR.stats[1], ng ? ["2", "Countries: US & Nigeria"] : [String(states.length), "US states licensed"]];
   return (
     <>
       <PublicHero eyebrow="About" title="Care rooted in faith, culture and family." lead="Meet the physician behind the practice." />
@@ -39,7 +45,7 @@ export default function AboutPage() {
               {DOCTOR.name}, {DOCTOR.postnominals}
             </div>
             <p className="mt-6 text-body-2">
-              Board certified in internal, obesity and lifestyle medicine and trained across Nigeria and the United States, Dr. Oparaji built this practice for African families who want care that respects their food, faith and culture.
+              Board certified in internal, obesity and lifestyle medicine and trained across Nigeria and the United States, and fluent in {DOCTOR.languages.join(" and ")}, Dr. Oparaji built this virtual-only practice for African families who want care that respects their food, faith and culture.
             </p>
             <a href={portfolio("/about")} className="mt-3 inline-flex items-center gap-1.5 font-bold text-forest hover:text-forest-deep">
               Read the full story <Icon name="arrow" size={16} strokeWidth={2.2} />
@@ -58,7 +64,7 @@ export default function AboutPage() {
 
       <Container className="pt-16">
         <dl className="grid gap-px overflow-hidden rounded-3xl border border-line bg-line sm:grid-cols-3">
-          {DOCTOR.stats.map(([n, l]) => (
+          {stats.map(([n, l]) => (
             <div key={l} className="bg-white px-7 py-6">
               <dt className="sr-only">{l}</dt>
               <dd className="num font-display text-[44px] leading-none text-forest">{n}</dd>
@@ -121,7 +127,19 @@ export default function AboutPage() {
             </ul>
           </div>
         </div>
-        <p className="mt-8 text-[13px] text-[#5A6272]">State and country licensure is shown when you book, based on where you will be during the visit.</p>
+        {ng ? (
+          <p className="mt-8 text-[13px] text-[#5A6272]">Registered with the Medical and Dental Council of Nigeria. Your location is confirmed when you book.</p>
+        ) : (
+          <div className="mt-14 border-t border-line pt-12">
+            <h3 className="text-lg font-bold">Where she can see you</h3>
+            <p className="mt-1.5 max-w-[620px] text-[15px] text-body-2">
+              Licensed in {states.length} US states. Visits happen by video, so you only need to be in one of these states at the time of your visit.
+            </p>
+            <div className="mt-8 max-w-[900px]">
+              <LicensureMap states={states} />
+            </div>
+          </div>
+        )}
       </Container>
 
       <div className="mt-20 bg-sage md:mt-[110px]">

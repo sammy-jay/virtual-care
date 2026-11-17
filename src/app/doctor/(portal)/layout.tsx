@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import { AppShell } from "@/components/portal/app-shell";
 import { Icon } from "@/components/icons";
 import { requireDoctor } from "@/lib/auth/dal";
@@ -71,7 +71,7 @@ export default async function DoctorLayout({ children }: LayoutProps<"/doctor">)
             <span className={`size-2 rounded-full ${practice.bookingPublished ? "bg-forest" : "bg-coral"}`} />
             {practice.bookingPublished ? "Accepting bookings" : "Booking paused"}
           </div>
-          <div className="mt-1 text-[13.5px] font-bold">Houston · {zoneAbbr(PRACTICE_TZ)}</div>
+          <div className="mt-1 text-[13.5px] font-bold">Virtual · US Central ({zoneAbbr(PRACTICE_TZ)})</div>
           <div className="text-[12.5px] text-body">{nextOpen ? `Next open: ${fmt(nextOpen, PRACTICE_TZ, "EEE d MMM")}` : "No open times"}</div>
         </Link>
       }

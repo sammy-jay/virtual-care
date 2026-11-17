@@ -3,12 +3,17 @@ import { formatInTimeZone, fromZonedTime, toZonedTime } from "date-fns-tz";
 export const PRACTICE_TZ = "America/Chicago";
 
 /** Supported patient time zones, shown in the sign-up and settings pickers. */
+// "city" is the short place label in zone chips ("WAT · Lagos", "CST · Central"). US zones use the
+// zone name rather than a city, since patients book from many states.
 export const TIME_ZONES: { id: string; label: string; city: string }[] = [
   { id: "Africa/Lagos", label: "Africa/Lagos (WAT)", city: "Lagos" },
-  { id: "America/Chicago", label: "America/Chicago (Central)", city: "Houston" },
-  { id: "America/New_York", label: "America/New_York (Eastern)", city: "New York" },
-  { id: "America/Denver", label: "America/Denver (Mountain)", city: "Denver" },
-  { id: "America/Los_Angeles", label: "America/Los_Angeles (Pacific)", city: "Los Angeles" },
+  { id: "America/New_York", label: "US Eastern (New York)", city: "Eastern" },
+  { id: "America/Chicago", label: "US Central (Chicago)", city: "Central" },
+  { id: "America/Denver", label: "US Mountain (Denver)", city: "Mountain" },
+  { id: "America/Phoenix", label: "US Arizona (Phoenix)", city: "Arizona" },
+  { id: "America/Los_Angeles", label: "US Pacific (Los Angeles)", city: "Pacific" },
+  { id: "America/Anchorage", label: "US Alaska (Anchorage)", city: "Alaska" },
+  { id: "Pacific/Honolulu", label: "US Hawaii (Honolulu)", city: "Hawaii" },
   { id: "Europe/London", label: "Europe/London (UK)", city: "London" },
   { id: "Africa/Accra", label: "Africa/Accra (GMT)", city: "Accra" },
 ];

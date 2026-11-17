@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/market";
 import type { Metadata } from "next";
 import { Icon, type IconName } from "@/components/icons";
 import { Alert, Avatar, ButtonLink, Card, Eyebrow } from "@/components/ui";
