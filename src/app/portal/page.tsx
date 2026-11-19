@@ -39,7 +39,7 @@ export default async function OverviewPage() {
     const steps = [
       ["Book your free intro call", "15 minutes by video, no card needed", "/portal/book?type=intro", "Book"],
       ["Complete your health profile", `${prof.pct}% complete · takes about 3 minutes`, "/portal/health-profile", prof.pct ? "Continue" : "Start"],
-      ["Choose how to pay for care", "Pay per visit, or join a plan for included visits", "/membership", "View plans"],
+      ["Choose how to pay for care", "Pay per visit, or join a plan for included visits", "/portal/membership", "View plans"],
     ];
     return (
       <div className="mx-auto max-w-[1140px]">
@@ -116,7 +116,7 @@ export default async function OverviewPage() {
             <div className="relative mt-5 flex flex-wrap items-center gap-3">
               {next.status === "PENDING_PAYMENT" ? (
                 <Link href={`/portal/visits/${next.id}/pay`} className="rounded-full bg-gold px-6 py-3 font-bold text-ink">
-                  Pay {money(next.priceCents)} to confirm
+                  Pay {money(next.priceCents, next.currency)} to confirm
                 </Link>
               ) : (
                 <Link href={`/portal/visits/${next.id}/precheck`} className="rounded-full bg-gold px-6 py-3 font-bold text-ink">

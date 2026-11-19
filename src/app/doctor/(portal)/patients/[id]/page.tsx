@@ -32,7 +32,7 @@ export default async function PatientRecordOverview({ params }: PageProps<"/doct
               </div>
               <p className="text-sm text-body">
                 {fmtTime(next.startsAt, tz)} {zoneAbbr(tz, next.startsAt)} · {fmtTime(next.startsAt, patient.timeZone)} {zoneAbbr(patient.timeZone, next.startsAt)} ·{" "}
-                {next.pricingReason === "INCLUDED" ? `Included in ${membership?.plan.name}` : next.pricingReason === "FREE" ? "Free" : money(next.priceCents)}
+                {next.pricingReason === "INCLUDED" ? `Included in ${membership?.plan.name}` : next.pricingReason === "FREE" ? "Free" : money(next.priceCents, next.currency)}
               </p>
               {next.reason && <p className="mt-2 rounded-xl bg-canvas px-3 py-2 text-sm">{next.reason}</p>}
               <div className="mt-4 flex gap-2.5">

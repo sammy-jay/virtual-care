@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import type { Membership, Plan, VisitType } from "@prisma/client";
 import { db } from "@/lib/db";
-import { priceVisit, type PricingResult } from "@/lib/pricing";
+import { localizeQuote, priceVisit, type PricingResult } from "@/lib/pricing";
 import { addMonths } from "@/lib/time";
 
 export const getPractice = cache(async () => {
@@ -59,6 +59,14 @@ export async function allowanceUsed(m: Membership, at: Date, excludeAppointmentI
 
 export interface Quote extends PricingResult {
   membership: MembershipWithPlan | null;
+  /** USD for US accounts (Stripe); NGN for Nigeria accounts (Paystack). Amounts are in that currency's minor unit. */
+  currency: "USD" | "NGN";
+}
+
+/** The currency an account pays in: Nigeria accounts pay naira, everyone else dollars. */
+export async function accountCurrency(patientId: string): Promise<"USD" | "NGN"> {
+  const u = await db.user.findUnique({ where: { id: patientId }, select: { market: true } });
+  return u?.market === "NG" ? "NGN" : "USD";
 }
 
 /** Price a visit for a patient at a given time — the only entry point booking screens use. */
@@ -79,7 +87,8 @@ export async function quoteVisit(patientId: string, visitType: VisitType, at: Da
       : null,
     allowanceUsed: used,
   });
-  return { ...r, membership: covering };
+  const [currency, practice] = await Promise.all([accountCurrency(patientId), getPractice()]);
+  return { ...localizeQuote(r, currency, practice.ngnPerUsd), membership: covering };
 }
 
 /** Has the patient completed (or got scheduled) a non-intro visit? Follow-ups need one. */

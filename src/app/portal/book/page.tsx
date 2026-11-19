@@ -3,6 +3,7 @@ import { requirePatient } from "@/lib/auth/dal";
 import { bookingRegions, loadOpenSlots } from "@/lib/booking";
 import { allowanceUsed, getActiveMembership, getPlans, getVisitTypes, hasPriorVisit, quoteVisit } from "@/lib/care";
 import { db } from "@/lib/db";
+import { moneyShort } from "@/lib/format";
 import { dayKey, fmt, fmtTime, PRACTICE_TZ, utcOffsetLabel, zoneAbbr, zoneCity } from "@/lib/time";
 import { BookingForm, type BookingOption, type DaySlots } from "./booking-form";
 
@@ -66,6 +67,7 @@ export default async function BookPage({ searchParams }: PageProps<"/portal/book
 
   const used = membership ? await allowanceUsed(membership, new Date()) : 0;
   const thrive = plans.find((p) => p.popular);
+  const currency = user.market === "NG" ? "NGN" : "USD";
   const sideNote = membership
     ? membership.plan.includedVisits > 0
       ? {
@@ -74,7 +76,7 @@ export default async function BookPage({ searchParams }: PageProps<"/portal/book
         }
       : null
     : thrive
-      ? { title: "Visit often?", body: `${thrive.name} is $${thrive.monthlyPriceCents / 100}/mo and includes one follow-up each month plus ${thrive.discountPct}% off every other visit.`, cta: true }
+      ? { title: "Visit often?", body: `${thrive.name} is ${currency === "NGN" ? moneyShort(thrive.monthlyPriceNgn * 100, "NGN") : moneyShort(thrive.monthlyPriceCents)}/mo and includes one follow-up each month plus ${thrive.discountPct}% off every other visit.`, cta: true }
       : null;
 
   return (
@@ -90,6 +92,7 @@ export default async function BookPage({ searchParams }: PageProps<"/portal/book
       defaultRegion={profile?.region ?? ""}
       sideNote={sideNote}
       planName={membership?.plan.name ?? null}
+      currency={currency}
     />
   );
 }

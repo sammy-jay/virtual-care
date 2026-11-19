@@ -5,6 +5,7 @@ import { useMarketHref } from "@/components/market";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
 import { cn } from "@/lib/format";
+import { usePeer } from "./use-peer";
 
 function Ctrl({ on, onClick, icon, offIcon, label }: { on: boolean; onClick: () => void; icon: "mic" | "video"; offIcon: "micOff" | "camOff"; label: string }) {
   return (
@@ -19,7 +20,8 @@ type Phase = "waiting" | "live" | "ended";
 
 /**
  * Patient room (07.2 waiting · 07.3 in call · 07.4 reconnecting) and the doctor's video tile.
- * Polls /api/visits/:id/state; with VIDEO_PROVIDER=daily the call itself is the Daily room.
+ * Polls /api/visits/:id/state for waiting/admitted/ended. The call itself is peer-to-peer WebRTC
+ * (use-peer.ts) by default, or the Daily room when VIDEO_PROVIDER=daily.
  */
 export function VideoRoom({
   appointmentId,
@@ -28,6 +30,7 @@ export function VideoRoom({
   selfLabel = "You",
   audioOnly,
   dailyUrl,
+  iceServers = [],
   backupUrl,
   onLeaveHref,
   role,
@@ -40,6 +43,8 @@ export function VideoRoom({
   selfLabel?: string;
   audioOnly?: boolean;
   dailyUrl?: string;
+  /** STUN/TURN servers for peer-to-peer calls (from src/lib/video.ts). */
+  iceServers?: RTCIceServer[];
   backupUrl?: string | null;
   onLeaveHref: string;
   role: "patient" | "doctor";
@@ -50,7 +55,11 @@ export function VideoRoom({
   const router = useRouter();
   const leaveHref = useMarketHref()(onLeaveHref);
   const video = useRef<HTMLVideoElement>(null);
+  const remoteEl = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
+  const [local, setLocal] = useState<MediaStream | null>(null);
+  const [localReady, setLocalReady] = useState(false);
+  const [needsTap, setNeedsTap] = useState(false);
   const [phase, setPhase] = useState<Phase>(role === "doctor" ? "live" : "waiting");
   const [admittedAt, setAdmittedAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -65,8 +74,13 @@ export function VideoRoom({
       .then((s) => {
         stream.current = s;
         if (video.current) video.current.srcObject = s;
+        setLocal(s);
+        setLocalReady(true);
       })
-      .catch(() => setCamOff(true));
+      .catch(() => {
+        setCamOff(true);
+        setLocalReady(true);
+      });
     return () => stream.current?.getTracks().forEach((t) => t.stop());
   }, [audioOnly, dailyUrl]);
 
@@ -107,6 +121,16 @@ export function VideoRoom({
     };
   }, [appointmentId, leaveHref, router]);
 
+  const peer = usePeer({ appointmentId, role, iceServers, stream: local, enabled: !dailyUrl && phase === "live" && localReady });
+
+  useEffect(() => {
+    const el = remoteEl.current;
+    if (!el || !peer.remoteStream) return;
+    el.srcObject = peer.remoteStream;
+    el.play().catch(() => setNeedsTap(true));
+  }, [peer.remoteStream]);
+
+  const reconnecting = !online || peer.state === "reconnecting";
   const elapsed = admittedAt ? Math.max(0, Math.floor((now - admittedAt) / 1000)) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
@@ -142,17 +166,35 @@ export function VideoRoom({
             <div className="text-sm text-white/70">You will connect automatically.</div>
           </div>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="flex size-28 items-center justify-center rounded-full bg-forest font-display text-4xl">{remoteName.replace(/^Dr\.?\s*/, "").split(" ").map((p) => p[0]).join("").slice(0, 2)}</span>
+          <div className="absolute inset-0 flex items-center justify-center" data-peer={peer.state}>
+            <video ref={remoteEl} autoPlay playsInline className={cn("absolute inset-0 size-full object-cover", !(peer.state === "connected" && peer.remoteVideo) && "invisible")} />
+            {!(peer.state === "connected" && peer.remoteVideo) && (
+              <>
+                <span className="flex size-28 items-center justify-center rounded-full bg-forest font-display text-4xl">{remoteName.replace(/^Dr\.?\s*/, "").split(" ").map((p) => p[0]).join("").slice(0, 2)}</span>
+                <span className="absolute top-[calc(50%+72px)] text-sm text-white/75">
+                  {peer.state === "connected" ? `${remoteName.split(" ")[0]} has their camera off` : peer.state === "reconnecting" ? "Reconnecting…" : `Connecting to ${remoteName}…`}
+                </span>
+              </>
+            )}
             <span className="absolute bottom-4 left-4 rounded-full bg-black/40 px-3 py-1 text-[13px]">{remoteName}</span>
+            {needsTap && (
+              <button
+                onClick={() => {
+                  remoteEl.current?.play().then(() => setNeedsTap(false)).catch(() => {});
+                }}
+                className="absolute top-4 rounded-full bg-white px-4 py-2 text-sm font-bold text-ink"
+              >
+                Tap to turn on sound
+              </button>
+            )}
           </div>
         )}
 
-        {!online && (
+        {reconnecting && (
           <div className="absolute inset-x-4 top-4 flex items-center gap-3 rounded-2xl bg-gold px-4 py-3 text-ink">
             <Icon name="wifi" size={18} />
             <div className="text-sm">
-              <b>Reconnecting…</b> Weak connection. Switching to audio-only to keep the call going.
+              <b>Reconnecting…</b> {online ? "The connection dropped. Hang on, we are reconnecting you." : "You are offline. Check your internet connection."}
             </div>
           </div>
         )}

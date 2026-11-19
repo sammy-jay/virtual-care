@@ -15,7 +15,7 @@ export default async function HealthProfilePage({ searchParams }: PageProps<"/po
   const { sections } = profileSections(user, p);
   const initial = {
     name: user.name,
-    dob: p?.dateOfBirth ? formatInTimeZone(p.dateOfBirth, "UTC", "dd / MM / yyyy") : "",
+    dob: p?.dateOfBirth ? formatInTimeZone(p.dateOfBirth, "UTC", "yyyy-MM-dd") : "",
     phone: user.phone ?? "",
     medications: p?.medications ?? "",
     allergies: p?.allergies ?? "",
@@ -34,7 +34,7 @@ export default async function HealthProfilePage({ searchParams }: PageProps<"/po
           Your email is verified. A few details now help Dr. Oparaji prepare — then book your free intro call.
         </Alert>
       )}
-      <ProfileForm initial={initial} sections={sections} />
+      <ProfileForm initial={initial} sections={sections} today={formatInTimeZone(new Date(), "UTC", "yyyy-MM-dd")} />
     </div>
   );
 }

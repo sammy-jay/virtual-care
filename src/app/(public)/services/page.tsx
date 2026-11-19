@@ -4,6 +4,7 @@ import { Icon } from "@/components/icons";
 import { Container, CtaBand, PublicHero, SectionHead } from "@/components/public/shell";
 import { getPlans, getPractice, getVisitTypes } from "@/lib/care";
 import { moneyShort } from "@/lib/format";
+import { usdToNgnKobo } from "@/lib/pricing";
 import { getMarket } from "@/lib/market-server";
 
 export const metadata: Metadata = { title: "Services" };
@@ -19,8 +20,8 @@ const TINTS = [
 
 export default async function ServicesPage() {
   const [types, plans, market, practice] = await Promise.all([getVisitTypes(), getPlans(), getMarket(), getPractice()]);
-  // Visits are billed in USD; the Nigeria site adds an approximate naira figure.
-  const approxNgn = (cents: number) => moneyShort(Math.round((cents * practice.ngnPerUsd) / 100 / 500) * 500 * 100, "NGN");
+  // Visit prices are set in USD; Nigeria accounts pay the naira amount at the practice rate.
+  const approxNgn = (cents: number) => moneyShort(usdToNgnKobo(cents, practice.ngnPerUsd), "NGN");
   const thrive = plans.find((p) => p.popular);
   const badge = (slug: string, id: string) => {
     if (slug === "intro") return "Free";

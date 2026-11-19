@@ -10,5 +10,8 @@ export default defineConfig({
   workers: 1,
   globalSetup: "./e2e/global-setup.ts",
   use: { baseURL: `http://localhost:${PORT}`, trace: "retain-on-failure", actionTimeout: 30_000, navigationTimeout: 90_000 },
-  webServer: { command: `npx next dev -p ${PORT}`, url: `http://localhost:${PORT}/sign-in`, reuseExistingServer: true, timeout: 180_000 },
+  webServer: { command: `npx next dev -p ${PORT}`, url: `http://localhost:${PORT}/sign-in`, reuseExistingServer: true, timeout: 180_000,
+    // Mock payments unless E2E_PAYMENTS=test (e2e/payments.spec.ts); return URLs point back at this server.
+    env: { PAYMENTS_PROVIDER: process.env.E2E_PAYMENTS === "test" ? "test" : "mock", APP_URL: `http://localhost:${PORT}` },
+  },
 });

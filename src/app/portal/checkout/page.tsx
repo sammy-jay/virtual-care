@@ -3,9 +3,10 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Card, Eyebrow, Row } from "@/components/ui";
 import { requirePatient } from "@/lib/auth/dal";
-import { getActiveMembership } from "@/lib/care";
+import { accountCurrency, getActiveMembership } from "@/lib/care";
 import { db } from "@/lib/db";
-import { cn, money } from "@/lib/format";
+import { money } from "@/lib/format";
+import { providerFor } from "@/lib/payments";
 import { addMonths, fmtShort } from "@/lib/time";
 import { CheckoutForm } from "./checkout-form";
 
@@ -17,26 +18,21 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/portal/
   const plan = await db.plan.findUnique({ where: { slug: typeof sp.plan === "string" ? sp.plan : "thrive" } });
   if (!plan) redirect("/membership");
   if (await getActiveMembership(user.id)) redirect(`/portal/membership?dialog=switch&plan=${plan.slug}`);
-  const profile = await db.patientProfile.findUnique({ where: { userId: user.id } });
-  const ngn = sp.currency === "NGN" || (sp.currency !== "USD" && profile?.region === "NG");
-  const methods = await db.paymentMethod.findMany({ where: { userId: user.id, ...(ngn ? { country: "NG" } : {}) } });
-  const cur = ngn ? "NGN" : "USD";
+  // Nigeria accounts pay the naira price through Paystack; everyone else pays dollars through Stripe.
+  const cur = await accountCurrency(user.id);
+  const ngn = cur === "NGN";
+  const provider = providerFor(cur);
+  const methods = await db.paymentMethod.findMany({ where: { userId: user.id, provider } });
   const amount = ngn ? plan.monthlyPriceNgn * 100 : plan.monthlyPriceCents;
 
   return (
     <div className="mx-auto max-w-[1000px]">
       <h1 className="h-display text-[34px] md:text-[38px]">Join {plan.name}</h1>
-      <p className="mt-1.5 text-[15.5px] text-body">{ngn ? "Pay in naira with a Nigerian card or bank transfer." : "Cancel anytime. Your included visit resets every billing date."}</p>
-      <div className="mt-4 flex gap-2" role="tablist" aria-label="Currency">
-        {(["USD", "NGN"] as const).map((c) => (
-          <Link key={c} href={`/portal/checkout?plan=${plan.slug}&currency=${c}`} role="tab" aria-selected={cur === c} className={cn("rounded-full px-4 py-2 text-sm font-bold", cur === c ? "bg-forest text-white" : "bg-white text-body")}>
-            {c === "USD" ? "Pay in dollars" : "Pay in naira"}
-          </Link>
-        ))}
-      </div>
+      <p className="mt-1.5 text-[15.5px] text-body">{ngn ? "Pay in naira with a Nigerian card. Cancel anytime." : "Cancel anytime. Your included visit resets every billing date."}</p>
+      {sp.error && <div className="mt-4 rounded-[20px] bg-coral-tint p-4 text-sm text-coral-ink">{String(sp.error)}</div>}
       {ngn && (
         <div className="mt-4 rounded-[20px] bg-gold-tint p-4 text-sm text-warning">
-          Prices are set in naira for Nigerian cards. You are charged {money(amount, "NGN")} each month; the rate does not change with exchange rates.
+          Prices are set in naira. You are charged {money(amount, "NGN")} each month; the rate does not change with exchange rates.
         </div>
       )}
       <div className="mt-5 grid gap-5 lg:grid-cols-[1.3fr_1fr]">
@@ -60,11 +56,10 @@ export default async function CheckoutPage({ searchParams }: PageProps<"/portal/
             <div className="mt-3">
               <CheckoutForm
                 plan={plan.slug}
-                currency={cur}
                 name={user.name}
                 label={`Pay ${money(amount, cur)} and join`}
                 methods={methods.map((m) => ({ id: m.id, label: `${m.brand} ending ${m.last4}`, isDefault: m.isDefault }))}
-                ngn={ngn}
+                provider={provider}
               />
             </div>
           </Card>

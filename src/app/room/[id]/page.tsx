@@ -27,6 +27,7 @@ export default async function PatientRoomPage({ params, searchParams }: PageProp
       remoteName="Dr. Oparaji"
       audioOnly={audio === "1"}
       dailyUrl={info.provider === "daily" ? info.url : undefined}
+      iceServers={info.provider === "p2p" ? info.iceServers : undefined}
       backupUrl={a.backupUrl}
       onLeaveHref={`/portal/visits/${a.id}/ended`}
       role="patient"

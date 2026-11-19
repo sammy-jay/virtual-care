@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { emailDoctors, sendEmail } from "@/lib/email";
+import { getMarket } from "@/lib/market-server";
 import { notifyDoctors } from "@/lib/notify";
 
 const schema = z.object({
@@ -23,7 +25,9 @@ export async function sendInquiry(_: ContactState, form: FormData): Promise<Cont
     return { errors, values };
   }
   const { name, email, topic, body } = parsed.data;
-  await db.inquiry.create({ data: { name, email: email.toLowerCase(), topic, body } });
+  const inquiry = await db.inquiry.create({ data: { name, email: email.toLowerCase(), topic, body } });
+  await sendEmail(inquiry.email, { template: "inquiry_received", name: name.split(" ")[0], topic }, { audience: { kind: "public", market: await getMarket() } });
+  await emailDoctors({ template: "doctor_new_inquiry", name, topic, id: inquiry.id });
   await notifyDoctors({ category: "INQUIRIES", title: "New inquiry", body: `${name.split(" ")[0]} asked about ${topic.toLowerCase()}`, href: "/doctor/inquiries" });
   return { ok: true };
 }

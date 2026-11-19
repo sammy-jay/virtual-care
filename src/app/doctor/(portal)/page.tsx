@@ -45,8 +45,8 @@ export default async function DoctorDashboard({ searchParams }: PageProps<"/doct
       : a.pricingReason === "FREE"
         ? "Free"
         : a.pricingReason === "MEMBER_RATE"
-          ? `${a.membership?.plan.name ?? "Member"} · ${money(a.priceCents)}`
-          : `Paid ${money(a.priceCents)}`;
+          ? `${a.membership?.plan.name ?? "Member"} · ${money(a.priceCents, a.currency)}`
+          : `Paid ${money(a.priceCents, a.currency)}`;
 
   const attention: [IconName, string, string, string][] = [
     drafts.length ? ["doc", `${pluralize(drafts.length, "care plan")} to publish`, drafts.map((d) => shortName(d.patient.name)).join(", "), `/doctor/care-plans/${drafts[0].id}`] : null,

@@ -46,7 +46,7 @@ export default async function AppointmentsPage({ searchParams }: PageProps<"/doc
   const hours = [12, 13, 14, 15, 16, 17, 18];
   const hourOf = (d: Date) => Number(fmt(d, tz, "H")) + Number(fmt(d, tz, "m")) / 60;
   const resched = dialog === "reschedule" && selected ? (await loadOpenSlots(selected.visitType, new Date(), 14, selected.id)).slice(0, 8) : [];
-  const price = (a: (typeof appts)[number]) => (a.pricingReason === "INCLUDED" ? "included" : a.pricingReason === "FREE" ? "Free" : money(a.priceCents));
+  const price = (a: (typeof appts)[number]) => (a.pricingReason === "INCLUDED" ? "included" : a.pricingReason === "FREE" ? "Free" : money(a.priceCents, a.currency));
   const prev = dayKey(addDays(zonedWallToUtc(monday, 12 * 60, tz), -7), tz);
   const next = dayKey(addDays(zonedWallToUtc(monday, 12 * 60, tz), 7), tz);
 
@@ -208,7 +208,7 @@ export default async function AppointmentsPage({ searchParams }: PageProps<"/doc
       {dialog === "noshow" && selected && (
         <Modal closeHref={base} title="Mark as no-show?" subtitle={`${selected.patient?.name} did not join the ${fmtTime(selected.startsAt, tz)} visit.`} icon="alert" iconTone="coral">
           <ModalSummary>
-            <Row label="Charge">{selected.usesAllowance ? "Included visit is used" : selected.priceCents ? `${money(selected.priceCents)} is kept` : "None"}</Row>
+            <Row label="Charge">{selected.usesAllowance ? "Included visit is used" : selected.priceCents ? `${money(selected.priceCents, selected.currency)} is kept` : "None"}</Row>
             <Row label="Patient notified">Yes, by email</Row>
             <Row label="Can be undone">For 24 hours</Row>
           </ModalSummary>

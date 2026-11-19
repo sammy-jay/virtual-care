@@ -11,7 +11,7 @@ import { sendEmail } from "@/lib/email";
 import { money, shortName } from "@/lib/format";
 import { postMessage } from "@/lib/messaging";
 import { notify } from "@/lib/notify";
-import { fmtWhen, PRACTICE_TZ, zoneWallToUtcSafe } from "@/lib/time";
+import { fmtWhen, PRACTICE_TZ, slotOf, zoneWallToUtcSafe } from "@/lib/time";
 
 const back = (form: FormData, fallback: string) => {
   const r = String(form.get("returnTo") ?? "");
@@ -35,6 +35,7 @@ export async function endVisit(form: FormData) {
   const id = String(form.get("id"));
   const a = await db.appointment.findUniqueOrThrow({ where: { id } });
   if (a.status === "SCHEDULED") await db.appointment.update({ where: { id }, data: { status: "COMPLETED", endedAt: new Date(), admittedAt: a.admittedAt ?? new Date() } });
+  await db.videoSignal.deleteMany({ where: { appointmentId: id } });
   revalidatePath("/doctor", "layout");
   redirect(`/doctor/visits/${id}/notes`);
 }
@@ -83,7 +84,7 @@ export async function doctorReschedule(form: FormData) {
   await db.appointment.update({ where: { id }, data: { startsAt: slot, endsAt: new Date(slot.getTime() + a.visitType.durationMin * 60_000), reminder1Sent: false, reminder24Sent: false } });
   if (a.patient) {
     const when = fmtWhen(slot, a.patient.timeZone);
-    await sendEmail(a.patient.email, { template: "visit_rescheduled", when });
+    await sendEmail(a.patient.email, { template: "visit_rescheduled", slot: slotOf(slot, a.patient.timeZone), visitType: a.visitType.name, id: a.id });
     await notify(a.patient.id, { category: "VISITS", title: "Visit rescheduled", body: `Dr. Oparaji moved your ${a.visitType.name} to ${when}`, href: "/portal/visits" });
   }
   await logAccess(doc, `Rescheduled visit · ${a.patient?.name}`, a.patientId);
@@ -145,7 +146,7 @@ export async function publishCarePlan(form: FormData) {
   const plan = await db.carePlan.update({ where: { id }, data: { status: "PUBLISHED", publishedAt: new Date() }, include: { patient: true, appointment: { include: { visitType: true } } } });
   const convo = (await db.conversation.findFirst({ where: { patientId: plan.patientId, kind: "doctor" } })) ?? (await db.conversation.create({ data: { patientId: plan.patientId } }));
   await db.message.create({ data: { conversationId: convo.id, fromDoctor: true, senderId: doc.id, kind: "CARE_PLAN", body: "Your care plan was updated", carePlanId: plan.id } });
-  if (plan.patient.notifyPrefs?.carePlans !== false) await sendEmail(plan.patient.email, { template: "care_plan_published" });
+  if (plan.patient.notifyPrefs?.carePlans !== false) await sendEmail(plan.patient.email, { template: "care_plan_published", id: plan.id });
   await notify(plan.patientId, { category: "CARE_PLANS", title: "Care plan published", body: plan.appointment.visitType.name, href: `/portal/care-plans/${plan.id}` });
   await logAccess(doc, `Published care plan · ${shortName(plan.patient.name)}`, plan.patientId);
   revalidatePath("/doctor", "layout");
@@ -183,7 +184,7 @@ export async function replyInquiry(form: FormData) {
   const body = String(form.get("body") ?? "").trim();
   if (!body) redirect(`/doctor/inquiries/${id}?error=1`);
   const q = await db.inquiry.update({ where: { id }, data: { status: "REPLIED", replies: { push: { body, sentAt: new Date() } } } });
-  await sendEmail(q.email, { template: "inquiry_reply", body });
+  await sendEmail(q.email, { template: "inquiry_reply", body, name: q.name.split(" ")[0] }, { audience: { kind: "public" } });
   redirect(`/doctor/inquiries/${id}?sent=1`);
 }
 

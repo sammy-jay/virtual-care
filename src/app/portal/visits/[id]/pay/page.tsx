@@ -5,6 +5,7 @@ import { requirePatient } from "@/lib/auth/dal";
 import { releaseExpiredHolds } from "@/lib/booking";
 import { db } from "@/lib/db";
 import { money } from "@/lib/format";
+import { providerFor } from "@/lib/payments";
 import { fmt, fmtTime, zoneAbbr } from "@/lib/time";
 import { PayVisitForm } from "./pay-form";
 
@@ -19,7 +20,9 @@ export default async function PayVisitPage({ params, searchParams }: PageProps<"
   if (!a || a.patientId !== user.id) notFound();
   if (a.status === "CANCELED") redirect(`/portal/visits?tab=past&id=${a.id}`); // hold expired
   if (a.status !== "PENDING_PAYMENT") redirect(`/portal/visits/${a.id}/confirmed`);
-  const methods = await db.paymentMethod.findMany({ where: { userId: user.id }, orderBy: { createdAt: "asc" } });
+  // Only cards the account's processor can charge (Stripe for USD, Paystack for NGN).
+  const provider = providerFor(a.currency);
+  const methods = await db.paymentMethod.findMany({ where: { userId: user.id, provider }, orderBy: { createdAt: "asc" } });
   const tz = user.timeZone;
   const plan = a.membership?.plan;
   const discount = a.standardCents - a.priceCents;
@@ -61,17 +64,17 @@ export default async function PayVisitPage({ params, searchParams }: PageProps<"
           <Card>
             <Eyebrow>Payment method</Eyebrow>
             <div className="mt-3">
-              <PayVisitForm appointmentId={a.id} name={user.name} amount={money(a.priceCents)} methods={methods.map((m) => ({ id: m.id, label: `${m.brand} ending ${m.last4}`, isDefault: m.isDefault }))} />
+              <PayVisitForm appointmentId={a.id} name={user.name} amount={money(a.priceCents, a.currency)} methods={methods.map((m) => ({ id: m.id, label: `${m.brand} ending ${m.last4}`, isDefault: m.isDefault }))} provider={provider} />
             </div>
           </Card>
         </div>
         <Card className="h-fit">
           <Eyebrow>Order summary</Eyebrow>
-          <Row label={a.visitType.name}>{money(a.standardCents)}</Row>
-          {discount > 0 && plan && <Row label={`${plan.name} member rate (${plan.discountPct}%)`}>−{money(discount)}</Row>}
+          <Row label={a.visitType.name}>{money(a.standardCents, a.currency)}</Row>
+          {discount > 0 && plan && <Row label={`${plan.name} member rate (${plan.discountPct}%)`}>−{money(discount, a.currency)}</Row>}
           <div className="mt-1 flex items-baseline justify-between border-t-2 border-ink pt-3.5">
             <b>Total today</b>
-            <span className="font-display text-[30px]">{money(a.priceCents)}</span>
+            <span className="font-display text-[30px]">{money(a.priceCents, a.currency)}</span>
           </div>
         </Card>
       </div>

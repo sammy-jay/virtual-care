@@ -38,6 +38,7 @@ export function BookingForm({
   defaultRegion,
   sideNote,
   planName,
+  currency = "USD",
 }: {
   options: BookingOption[];
   initialTypeId: string;
@@ -50,6 +51,8 @@ export function BookingForm({
   defaultRegion: string;
   sideNote: { title: string; body: string; cta?: boolean } | null;
   planName: string | null;
+  /** What this account pays in (amounts in options are already in it). */
+  currency?: "USD" | "NGN";
 }) {
   const [state, action, pending] = useActionState<BookState, FormData>(bookVisit, {});
   const [typeId, setTypeId] = useState(initialTypeId);
@@ -239,8 +242,8 @@ export function BookingForm({
             {chosen && opt?.reason !== "MEMBER_RATE" && <Line label="Doctor’s time">{chosen.doctor}</Line>}
             {opt?.reason === "MEMBER_RATE" ? (
               <>
-                <Line label="Standard price">{money(opt.standardCents)}</Line>
-                <Line label={`${planName} member discount`}>−{money(opt.discountCents)}</Line>
+                <Line label="Standard price">{money(opt.standardCents, currency)}</Line>
+                <Line label={`${planName} member discount`}>−{money(opt.discountCents, currency)}</Line>
               </>
             ) : opt?.reason === "FREE" ? (
               <Line label="Price">Free</Line>
@@ -249,7 +252,7 @@ export function BookingForm({
             )}
             <div className="mt-1 flex items-baseline justify-between border-t-2 border-ink pt-3.5">
               <b>Total today</b>
-              <span className="num font-display text-[30px]">{money(opt?.amountCents ?? 0)}</span>
+              <span className="num font-display text-[30px]">{money(opt?.amountCents ?? 0, currency)}</span>
             </div>
             <button disabled={pending || !opt} className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-forest px-6 py-4 font-bold text-white disabled:opacity-60">
               {pending ? "Booking…" : !chosen ? "Select a time first" : free ? "Confirm booking" : "Continue to payment"}

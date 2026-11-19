@@ -41,6 +41,7 @@ export default async function MyVisitsPage({ searchParams }: PageProps<"/portal/
   return (
     <div className="mx-auto max-w-[1140px]">
       <PageTitle title="My visits" actions={<ButtonLink href="/portal/book" icon="plus">Book a visit</ButtonLink>} />
+      {sp.released === "1" && <Alert tone="info" className="mb-4">The 30-minute hold on that time ran out before your payment finished, so we refunded you in full. Please book a new time.</Alert>}
       {sp.cancelled === "1" && <Alert tone="success" className="mb-4">Your visit was cancelled. If you had paid, the refund is on its way.</Alert>}
 
       <div className="mb-4 flex gap-1 rounded-full bg-white p-1 sm:w-fit" role="tablist">
@@ -119,7 +120,7 @@ export default async function MyVisitsPage({ searchParams }: PageProps<"/portal/
             {isUpcoming && selected.status === "PENDING_PAYMENT" && (
               <div className="mt-4">
                 <ButtonLink href={`/portal/visits/${selected.id}/pay`} className="w-full">
-                  Pay {money(selected.priceCents)} to confirm
+                  Pay {money(selected.priceCents, selected.currency)} to confirm
                 </ButtonLink>
               </div>
             )}
@@ -160,7 +161,7 @@ export default async function MyVisitsPage({ searchParams }: PageProps<"/portal/
           <p className="text-[15px] text-body">
             {selected.usesAllowance && `Your included visit returns to your ${fmt(selected.startsAt, tz, "MMMM")} allowance. `}
             {selected.status === "SCHEDULED" && selected.priceCents > 0
-              ? `You paid ${money(selected.priceCents)}. It is refunded automatically to your card.`
+              ? `You paid ${money(selected.priceCents, selected.currency)}. It is refunded automatically to your card.`
               : "If you had paid for this visit, it is refunded automatically."}
           </p>
           <form action={cancelVisit}>

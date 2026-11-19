@@ -25,10 +25,10 @@ test("new patient: sign up → verify → profile → free intro call → confir
   await expect(page.getByText("Your email is verified")).toBeVisible();
 
   // Profile validation (05.6)
-  await page.getByLabel("Date of birth").fill("31 / 02 / 1990");
+  await page.getByLabel("Date of birth").fill("2099-03-14");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.getByText("Fix 1 field before saving.")).toBeVisible();
-  await page.getByLabel("Date of birth").fill("14 / 03 / 1990");
+  await page.getByLabel("Date of birth").fill("1990-03-14");
   await page.getByRole("button", { name: "Save profile" }).click();
   await expect(page.getByText("Profile saved.")).toBeVisible();
 
@@ -66,7 +66,7 @@ test("member pays the member rate; a declined card is not charged (04.3, 06.5, 0
   await signIn(page, "adaeze@example.com");
   await page.goto("/portal/book?type=family-coaching");
   await expect(page.getByText("Why am I paying?")).toBeVisible();
-  await expect(page.getByText("$119.00").first()).toBeVisible();
+  await expect(page.getByText("₦178,500").first()).toBeVisible();
   await pickFirstSlot(page);
   await page.getByLabel("Reason for visit").fill("Family meals");
   await page.getByLabel("Where are you right now?").selectOption("NG");
@@ -79,16 +79,16 @@ test("member pays the member rate; a declined card is not charged (04.3, 06.5, 0
   await page.getByLabel("Card number").fill("4000 0000 0000 0002");
   await page.getByLabel("Expiry").fill("08 / 29");
   await page.getByLabel("CVC").fill("123");
-  await page.getByRole("button", { name: "Pay $119.00" }).click();
+  await page.getByRole("button", { name: "Pay ₦178,500" }).click();
   await page.waitForURL(/billing\/failed/);
   await expect(page.getByText("You have not been charged.")).toBeVisible();
 
   // Retry with the saved Visa
   await page.getByRole("link", { name: "Try another card" }).click();
   await page.getByLabel("Visa ending 4242").check();
-  await page.getByRole("button", { name: "Pay $119.00" }).click();
+  await page.getByRole("button", { name: "Pay ₦178,500" }).click();
   await page.waitForURL(/confirmed/);
-  await expect(page.getByText("$119.00 · member rate")).toBeVisible();
+  await expect(page.getByText("₦178,500 · member rate")).toBeVisible();
 });
 
 test("cancel more than 12 h ahead returns the included visit (04.13)", async ({ page }) => {

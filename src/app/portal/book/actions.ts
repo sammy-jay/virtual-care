@@ -77,6 +77,7 @@ export async function bookVisit(_: BookState, form: FormData): Promise<BookState
       patientTimeZone: user.timeZone,
       priceCents: quote.amountCents,
       standardCents: quote.standardCents,
+      currency: quote.currency,
       pricingReason: quote.reason,
       usesAllowance: quote.usesAllowance,
       membershipId: quote.membership?.id ?? null,

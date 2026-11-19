@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { priceVisit, prorate, type PricedPlan, type PricedVisitType } from "./pricing";
+import { localizeQuote, priceVisit, prorate, usdToNgnKobo, type PricedPlan, type PricedVisitType } from "./pricing";
 
 // The worked examples on board 01.6 Pricing Rules.
 const intro: PricedVisitType = { id: "intro", name: "Intro call", durationMin: 15, priceCents: 0, alwaysFree: true };
@@ -54,5 +54,21 @@ describe("prorate", () => {
     const r = prorate(12900, 22900, start, end, now);
     expect(r.daysLeft).toBe(7);
     expect(r.amountCents).toBe(Math.round((10000 * 7) / 30));
+  });
+});
+
+describe("naira pricing for Nigeria accounts", () => {
+  it("converts at the practice rate and rounds to the nearest ₦500 (amounts in kobo)", () => {
+    expect(usdToNgnKobo(9500, 1500)).toBe(142_500_00);
+    expect(usdToNgnKobo(8075, 1500)).toBe(121_000_00); // 121,125 → 121,000
+  });
+  it("re-expresses a member-rate quote in naira and keeps US quotes as they are", () => {
+    const usd = priceVisit({ visitType: followUp, plan: thrive, allowanceUsed: 1 });
+    const ng = localizeQuote(usd, "NGN", 1500);
+    expect(ng.currency).toBe("NGN");
+    expect(ng.amountCents).toBe(usdToNgnKobo(usd.amountCents, 1500));
+    expect(ng.discountCents).toBe(ng.standardCents - ng.amountCents);
+    expect(ng.pickerLine).toBe("₦121,000 member rate");
+    expect(localizeQuote(usd, "USD", 1500)).toEqual({ ...usd, currency: "USD" });
   });
 });

@@ -7,6 +7,11 @@ import bcrypt from "bcryptjs";
 import { fromZonedTime, formatInTimeZone } from "date-fns-tz";
 import { explicitNulls } from "./explicit-nulls";
 import { US_STATES } from "../src/lib/regions";
+import { usdToNgnKobo } from "../src/lib/pricing";
+
+/** Nigeria accounts pay in naira (Paystack) at the practice rate; amounts in kobo. */
+const NGN_PER_USD = 1500;
+const ngn = (usdCents: number) => usdToNgnKobo(usdCents, NGN_PER_USD);
 
 const db = new PrismaClient().$extends(explicitNulls);
 const CDT = "America/Chicago";
@@ -134,26 +139,32 @@ async function main() {
   // ── Memberships ──
   const periodStart = new Date(now.getTime() - 8 * day);
   const periodEnd = new Date(periodStart.getTime() + 30 * day);
-  const mAdaeze = await db.membership.create({ data: { patientId: adaeze.id, planId: thrive.id, currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: visa.id, createdAt: periodStart } });
+  const mAdaeze = await db.membership.create({ data: { patientId: adaeze.id, planId: thrive.id, currency: "NGN", currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: visa.id, createdAt: periodStart } });
   const mTunde = await db.membership.create({ data: { patientId: tunde.id, planId: family.id, currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: tundePm.id } });
-  const mNgozi = await db.membership.create({ data: { patientId: ngozi.id, planId: connect.id, currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: ngoziPm.id } });
-  const mMercy = await db.membership.create({ data: { patientId: mercy.id, planId: thrive.id, currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: mercyPm.id } });
+  const mNgozi = await db.membership.create({ data: { patientId: ngozi.id, planId: connect.id, currency: "NGN", currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: ngoziPm.id } });
+  const mMercy = await db.membership.create({ data: { patientId: mercy.id, planId: thrive.id, currency: "NGN", currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: mercyPm.id } });
 
   // ── Appointments ──
   type A = Omit<Prisma.AppointmentUncheckedCreateInput, "endsAt" | "consentAt" | "standardCents" | "patientTimeZone" | "region"> & { durationMin: number; region?: string; patientTimeZone?: string };
-  const appt = async ({ durationMin, ...a }: A, tz = WAT, region = "NG") =>
-    db.appointment.create({
+  const appt = async ({ durationMin, ...a }: A, tz = WAT, region = "NG") => {
+    // Nigeria visits are priced and paid in naira.
+    const naira = (a.region ?? region) === "NG";
+    const priceCents = naira ? ngn(a.priceCents) : a.priceCents;
+    return db.appointment.create({
       data: {
         ...a,
+        priceCents,
+        currency: naira ? "NGN" : "USD",
         endsAt: plus(a.startsAt as Date, durationMin),
         consentAt: new Date((a.startsAt as Date).getTime() - 3 * day),
-        standardCents: a.priceCents,
+        standardCents: priceCents,
         patientTimeZone: a.patientTimeZone ?? tz,
         region: a.region ?? region,
         roomName: `room-${Math.random().toString(36).slice(2, 10)}`,
         backupUrl: "https://meet.example.com/backup",
       },
     });
+  };
 
   // Adaeze's journey: intro → initial → follow-up → upcoming included follow-up
   const aIntro = await appt({ patientId: adaeze.id, visitTypeId: intro.id, startsAt: at(-56, 13), durationMin: 15, status: "COMPLETED", priceCents: 0, pricingReason: "FREE", reason: "Getting started" });
@@ -210,16 +221,16 @@ async function main() {
   // ── Payments ──
   const pay = (d: Omit<Prisma.PaymentUncheckedCreateInput, "receiptNo">) => db.payment.create({ data: { receiptNo: receipt(), ...d } });
   await pay({ patientId: adaeze.id, kind: "VISIT", status: "FREE", amountCents: 0, description: "Intro call", note: "Always free", appointmentId: aIntro.id, createdAt: aIntro.startsAt });
-  const declined = await pay({ patientId: adaeze.id, kind: "VISIT", status: "REFUNDED", amountCents: 9500, refundedCents: 9500, description: "Follow-up visit", note: "Card declined, retried", paymentMethodId: visa.id, createdAt: at(-60, 10) });
-  await db.refund.create({ data: { paymentId: declined.id, amountCents: 9500, reason: "Dr. Oparaji had to reschedule your follow-up, so you were refunded in full.", reference: `RF-${now.getFullYear()}-0087`, createdAt: at(-59, 10) } });
-  await pay({ patientId: adaeze.id, kind: "VISIT", status: "PAID", amountCents: 18000, description: "Initial consultation", note: "Pay per visit", paymentMethodId: visa.id, appointmentId: aInitial.id, createdAt: plus(aInitial.startsAt, -2000) });
-  await pay({ patientId: adaeze.id, kind: "VISIT", status: "PAID", amountCents: 9500, description: "Follow-up visit", note: "Before joining Thrive", paymentMethodId: visa.id, appointmentId: aFollow.id, createdAt: plus(aFollow.startsAt, -2000) });
-  await pay({ patientId: adaeze.id, kind: "MEMBERSHIP", status: "PAID", amountCents: 12900, description: "Thrive monthly", note: "Card ending 4242", paymentMethodId: visa.id, membershipId: mAdaeze.id, createdAt: periodStart });
+  const declined = await pay({ patientId: adaeze.id, kind: "VISIT", status: "REFUNDED", currency: "NGN", amountCents: ngn(9500), refundedCents: ngn(9500), description: "Follow-up visit", note: "Card declined, retried", paymentMethodId: visa.id, createdAt: at(-60, 10) });
+  await db.refund.create({ data: { paymentId: declined.id, amountCents: ngn(9500), reason: "Dr. Oparaji had to reschedule your follow-up, so you were refunded in full.", reference: `RF-${now.getFullYear()}-0087`, createdAt: at(-59, 10) } });
+  await pay({ patientId: adaeze.id, kind: "VISIT", status: "PAID", currency: "NGN", amountCents: ngn(18000), description: "Initial consultation", note: "Pay per visit", paymentMethodId: visa.id, appointmentId: aInitial.id, createdAt: plus(aInitial.startsAt, -2000) });
+  await pay({ patientId: adaeze.id, kind: "VISIT", status: "PAID", currency: "NGN", amountCents: ngn(9500), description: "Follow-up visit", note: "Before joining Thrive", paymentMethodId: visa.id, appointmentId: aFollow.id, createdAt: plus(aFollow.startsAt, -2000) });
+  await pay({ patientId: adaeze.id, kind: "MEMBERSHIP", status: "PAID", currency: "NGN", amountCents: thrive.monthlyPriceNgn * 100, description: "Thrive monthly", note: "Card ending 4242", paymentMethodId: visa.id, membershipId: mAdaeze.id, createdAt: periodStart });
   await pay({ patientId: tunde.id, kind: "MEMBERSHIP", status: "PAID", amountCents: 22900, description: "Family Focus monthly", paymentMethodId: tundePm.id, membershipId: mTunde.id, createdAt: periodStart });
   await pay({ patientId: tunde.id, kind: "VISIT", status: "PAID", amountCents: 11900, description: "Coaching · member rate", paymentMethodId: tundePm.id, createdAt: at(-2, 9) });
-  await pay({ patientId: mercy.id, kind: "MEMBERSHIP", status: "PAID", amountCents: 12900, description: "Thrive monthly", paymentMethodId: mercyPm.id, membershipId: mMercy.id, createdAt: at(-1, 8) });
+  await pay({ patientId: mercy.id, kind: "MEMBERSHIP", status: "PAID", currency: "NGN", amountCents: thrive.monthlyPriceNgn * 100, description: "Thrive monthly", paymentMethodId: mercyPm.id, membershipId: mMercy.id, createdAt: at(-1, 8) });
   await pay({ patientId: chidi.id, kind: "VISIT", status: "PAID", amountCents: 18000, description: "Initial consultation", paymentMethodId: chidiPm.id, appointmentId: cToday.id, createdAt: at(-1, 11) });
-  await pay({ patientId: ngozi.id, kind: "MEMBERSHIP", status: "PAID", amountCents: 5900, description: "Connect monthly", paymentMethodId: ngoziPm.id, membershipId: mNgozi.id, createdAt: at(-2, 7) });
+  await pay({ patientId: ngozi.id, kind: "MEMBERSHIP", status: "PAID", currency: "NGN", amountCents: connect.monthlyPriceNgn * 100, description: "Connect monthly", paymentMethodId: ngoziPm.id, membershipId: mNgozi.id, createdAt: at(-2, 7) });
   const chidiCancel = await pay({ patientId: chidi.id, kind: "VISIT", status: "REFUNDED", amountCents: 9500, refundedCents: 9500, description: "Follow-up visit", paymentMethodId: chidiPm.id, createdAt: at(-6, 9) });
   await db.refund.create({ data: { paymentId: chidiCancel.id, amountCents: 9500, reason: "Cancelled more than 12 hours before", reference: `RF-${now.getFullYear()}-0091`, createdAt: at(-5, 9) } });
   void tToday;

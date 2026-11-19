@@ -129,6 +129,25 @@ export function priceVisit({ visitType: vt, plan, allowanceUsed }: PricingInput)
   };
 }
 
+/**
+ * Visit prices are set in dollars. Nigeria accounts pay in naira (Paystack), converted at the
+ * practice's rate (Settings → ngnPerUsd) and rounded to the nearest ₦500. Amounts are in kobo.
+ */
+export function usdToNgnKobo(usdCents: number, ngnPerUsd: number) {
+  return Math.round((usdCents * ngnPerUsd) / 100 / 500) * 500 * 100;
+}
+
+const ngn = (kobo: number) => `₦${Math.round(kobo / 100).toLocaleString("en-US")}`;
+
+/** Re-express a quote in naira for a Nigeria account. USD quotes pass through unchanged. */
+export function localizeQuote<T extends PricingResult>(r: T, currency: "USD" | "NGN", ngnPerUsd: number): T & { currency: "USD" | "NGN" } {
+  if (currency === "USD") return { ...r, currency };
+  const amountCents = usdToNgnKobo(r.amountCents, ngnPerUsd);
+  const standardCents = usdToNgnKobo(r.standardCents, ngnPerUsd);
+  const pickerLine = r.reason === "MEMBER_RATE" ? `${ngn(amountCents)} member rate` : r.reason === "STANDARD" ? ngn(standardCents) : r.pickerLine;
+  return { ...r, currency, amountCents, standardCents, discountCents: standardCents - amountCents, pickerLine };
+}
+
 /** Prorated charge when switching to a pricier plan mid-period (board 06.9). */
 export function prorate(fromCents: number, toCents: number, periodStart: Date, periodEnd: Date, now = new Date()) {
   const total = periodEnd.getTime() - periodStart.getTime();

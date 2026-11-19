@@ -9,6 +9,7 @@ import { hashPassword, MIN_PASSWORD, verifyPassword } from "@/lib/auth/password"
 import { destroySession, revokeAllSessions } from "@/lib/auth/session";
 import { refundPayment } from "@/lib/billing";
 import { db } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
 import { notifyDoctors } from "@/lib/notify";
 import { TIME_ZONES } from "@/lib/time";
 
@@ -45,6 +46,7 @@ export async function changePassword(_: PwState, form: FormData): Promise<PwStat
   if (Object.keys(errors).length) return { errors };
   await db.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(next) } });
   await revokeAllSessions(user.id, session?.id);
+  await sendEmail(user.email, { template: "password_changed" });
   return { ok: true };
 }
 

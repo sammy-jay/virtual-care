@@ -30,6 +30,9 @@ test("video visit: precheck → waiting → doctor admits → doctor ends → pa
   await doc.waitForURL(/\/room$/);
 
   await expect(page.getByText(/elapsed/)).toBeVisible({ timeout: 15_000 });
+  // Peer-to-peer call: both browsers connect to each other.
+  await expect(page.locator('[data-peer="connected"]')).toBeVisible({ timeout: 30_000 });
+  await expect(doc.locator('[data-peer="connected"]')).toBeVisible({ timeout: 30_000 });
   await doc.getByLabel("Quick notes").fill("BP 126/80 today");
   await expect(doc.getByText("Saved")).toBeVisible();
   await doc.getByRole("button", { name: "End visit" }).first().click();

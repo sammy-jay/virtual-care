@@ -26,7 +26,7 @@ export async function saveProfile(_: ProfileState, form: FormData): Promise<Prof
   if (v.name.length < 2) errors.name = "Enter your full name.";
   const dob = v.dob ? parseDob(v.dob) : null;
   if (!v.dob) errors.dob = "Date of birth is required";
-  else if (!dob) errors.dob = "Use DD / MM / YYYY, for example 14 / 03 / 1987";
+  else if (!dob) errors.dob = "Pick a real date of birth, not in the future";
   if (v.phone && !PHONE.test(v.phone)) errors.phone = "Enter a valid phone number, for example +234 803 555 0142";
   if (v.ecPhone && !PHONE.test(v.ecPhone)) errors.ecPhone = "Enter a valid phone number for your contact.";
   const goalWeight = v.goalWeight ? Number(v.goalWeight) : null;

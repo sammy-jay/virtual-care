@@ -54,6 +54,9 @@ export const fmtShort = (d: Date, tz: string) => formatInTimeZone(d, tz, "d MMM"
 /** "Thu 29 Oct · 7:00 PM WAT" */
 export const fmtWhen = (d: Date, tz: string) => `${fmtDay(d, tz)} · ${fmtTime(d, tz)} ${zoneAbbr(tz, d)}`;
 
+/** A visit time split up for the calendar tile in emails. */
+export const slotOf = (d: Date, tz: string) => ({ weekday: fmt(d, tz, "EEE"), day: fmt(d, tz, "d"), month: fmt(d, tz, "MMM"), time: `${fmtTime(d, tz)} ${zoneAbbr(tz, d)}`, when: fmtWhen(d, tz) });
+
 /** Wall-clock time in `tz` → UTC Date. `date` is "yyyy-MM-dd". */
 export function zonedWallToUtc(date: string, minutes: number, tz: string): Date {
   if (minutes >= 1440 || minutes < 0) {

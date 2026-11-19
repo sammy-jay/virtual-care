@@ -67,6 +67,8 @@ export default async function PatientMembershipPage({ searchParams }: PageProps<
   return (
     <div className="mx-auto max-w-[1140px]">
       <PageTitle title="Membership" subtitle="One monthly price covers your included visit and messaging." />
+      {sp.refunded === "1" && <Alert tone="info" className="mb-4">You already had an active membership, so we refunded that payment in full.</Alert>}
+      {typeof sp.error === "string" && <Alert tone="error" className="mb-4">{sp.error}</Alert>}
       {sp.joined === "1" && <Alert tone="success" className="mb-4">Welcome to {m?.plan.name}. Your included visits are ready to book.</Alert>}
       {sp.switched === "1" && <Alert tone="success" className="mb-4">Your plan was switched to {m?.plan.name}.</Alert>}
       {sp.cancelled === "1" && <Alert tone="info" className="mb-4">Your membership will end on {m && fmtShort(m.currentPeriodEnd, tz)}. You keep everything until then.</Alert>}

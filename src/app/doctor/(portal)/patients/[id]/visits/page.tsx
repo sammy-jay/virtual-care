@@ -23,7 +23,7 @@ export default async function RecordVisits({ params }: PageProps<"/doctor/patien
             </span>
           </div>
           <StatusTag status={a.status} />
-          <span className="w-20 text-right text-sm font-semibold">{a.pricingReason === "INCLUDED" ? "Included" : a.pricingReason === "FREE" ? "Free" : money(a.priceCents)}</span>
+          <span className="w-20 text-right text-sm font-semibold">{a.pricingReason === "INCLUDED" ? "Included" : a.pricingReason === "FREE" ? "Free" : money(a.priceCents, a.currency)}</span>
           <ButtonLink href={`/doctor/visits/${a.id}/notes`} size="sm" variant="secondary">
             Notes
           </ButtonLink>

@@ -195,7 +195,7 @@ export async function requestReset(_: FormState, form: FormData): Promise<FormSt
   const user = await db.user.findUnique({ where: { email } });
   if (user && !user.deletedAt) {
     const raw = await issueResetToken(user.id);
-    await sendEmail(user.email, { template: "reset_password", url: `${process.env.APP_URL ?? "http://localhost:3000"}/reset-password?token=${raw}` });
+    await sendEmail(user.email, { template: "reset_password", token: raw });
   }
   // Same response whether or not the account exists.
   redirect(`/forgot-password/sent?email=${encodeURIComponent(email)}`);
@@ -215,6 +215,8 @@ export async function resetPassword(_: FormState, form: FormData): Promise<FormS
   await db.authToken.update({ where: { id: token.id }, data: { usedAt: new Date() } });
   await revokeAllSessions(token.userId);
   await destroySession();
+  const owner = await db.user.findUnique({ where: { id: token.userId }, select: { email: true } });
+  if (owner) await sendEmail(owner.email, { template: "password_changed" });
   redirect("/reset-password/done");
 }
 

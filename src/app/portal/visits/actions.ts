@@ -7,10 +7,10 @@ import { refundPayment } from "@/lib/billing";
 import { loadOpenSlots } from "@/lib/booking";
 import { getPractice } from "@/lib/care";
 import { db } from "@/lib/db";
-import { sendEmail } from "@/lib/email";
-import { shortName } from "@/lib/format";
+import { emailDoctors, sendEmail } from "@/lib/email";
+import { money, shortName } from "@/lib/format";
 import { notifyDoctors } from "@/lib/notify";
-import { fmtWhen, PRACTICE_TZ } from "@/lib/time";
+import { fmtWhen, PRACTICE_TZ, slotOf } from "@/lib/time";
 
 async function ownAppointment(id: string) {
   const user = await requirePatient();
@@ -31,11 +31,12 @@ export async function cancelVisit(form: FormData) {
   const paid = await db.payment.findFirst({ where: { appointmentId: a.id, status: "PAID" } });
   if (paid) await refundPayment(paid.id, paid.amountCents, "Cancelled more than 12 hours before");
   const when = fmtWhen(a.startsAt, user.timeZone);
-  await sendEmail(user.email, { template: "visit_cancelled", when });
+  await sendEmail(user.email, { template: "visit_cancelled", when, visitType: a.visitType.name, refunded: paid ? money(paid.amountCents, paid.currency) : undefined });
+  await emailDoctors({ template: "doctor_visit_cancelled", patient: shortName(user.name), visitType: a.visitType.name, when: fmtWhen(a.startsAt, PRACTICE_TZ) });
   await notifyDoctors({
     category: "VISITS",
     title: "Visit cancelled",
-    body: `${shortName(user.name)} cancelled ${fmtWhen(a.startsAt, PRACTICE_TZ)}${paid ? ` · refunded $${(paid.amountCents / 100).toFixed(2)}` : ""}`,
+    body: `${shortName(user.name)} cancelled ${fmtWhen(a.startsAt, PRACTICE_TZ)}${paid ? ` · refunded ${money(paid.amountCents, paid.currency)}` : ""}`,
     href: "/doctor/appointments",
   });
   revalidatePath("/portal", "layout");
@@ -55,7 +56,8 @@ export async function rescheduleVisit(form: FormData) {
     where: { id: a.id },
     data: { startsAt: slot, endsAt: new Date(slot.getTime() + a.visitType.durationMin * 60_000), reminder1Sent: false, reminder24Sent: false },
   });
-  await sendEmail(user.email, { template: "visit_rescheduled", when: fmtWhen(slot, user.timeZone) });
+  await sendEmail(user.email, { template: "visit_rescheduled", slot: slotOf(slot, user.timeZone), visitType: a.visitType.name, id: a.id });
+  await emailDoctors({ template: "doctor_visit_rescheduled", patient: shortName(user.name), visitType: a.visitType.name, slot: slotOf(slot, PRACTICE_TZ), id: a.id });
   await notifyDoctors({ category: "VISITS", title: "Visit rescheduled", body: `${shortName(user.name)} · ${a.visitType.name} · ${fmtWhen(slot, PRACTICE_TZ)}`, href: "/doctor/appointments" });
   revalidatePath("/portal", "layout");
   redirect(`/portal/visits/${a.id}/confirmed`);

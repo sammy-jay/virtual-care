@@ -1,6 +1,6 @@
 import Link from "@/components/market";
 import type { Metadata } from "next";
-import { Card, Eyebrow, PageTitle, StatusTag } from "@/components/ui";
+import { Alert, Card, Eyebrow, PageTitle, StatusTag } from "@/components/ui";
 import { requirePatient } from "@/lib/auth/dal";
 import { getActiveMembership } from "@/lib/care";
 import { db } from "@/lib/db";
@@ -9,8 +9,9 @@ import { fmtShort } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Billing and receipts" };
 
-export default async function BillingPage() {
+export default async function BillingPage({ searchParams }: PageProps<"/portal/billing">) {
   const user = await requirePatient();
+  const sp = await searchParams;
   const tz = user.timeZone;
   const [m, payments, card] = await Promise.all([
     getActiveMembership(user.id),
@@ -21,6 +22,7 @@ export default async function BillingPage() {
   return (
     <div className="mx-auto max-w-[1000px]">
       <PageTitle title="Billing and receipts" subtitle="Every charge, with a downloadable receipt." />
+      {sp.processing === "1" && <Alert tone="info" className="mb-4">Your payment is being confirmed. It will appear here in a minute, and we will email your receipt.</Alert>}
       <div className="mb-5 grid gap-4 sm:grid-cols-3">
         <Card>
           <Eyebrow>Plan</Eyebrow>

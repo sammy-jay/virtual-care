@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { requirePatient } from "@/lib/auth/dal";
 import { getPractice } from "@/lib/care";
 import { db } from "@/lib/db";
+import { emailDoctors } from "@/lib/email";
 import { notifyDoctors } from "@/lib/notify";
 import { shortName } from "@/lib/format";
 import { roomWindow } from "@/lib/visit-labels";
@@ -18,6 +19,7 @@ export async function enterWaitingRoom(form: FormData) {
   if (!a.waitingSince) {
     await db.appointment.update({ where: { id: a.id }, data: { waitingSince: new Date() } });
     await notifyDoctors({ category: "VISITS", title: `${shortName(user.name)} is in the waiting room`, body: a.visitType.name, href: `/doctor/visits/${a.id}/waiting` });
+    await emailDoctors({ template: "doctor_patient_waiting", patient: shortName(user.name), visitType: a.visitType.name, id: a.id });
   }
   redirect(`/room/${a.id}${form.get("audio") === "1" ? "?audio=1" : ""}`);
 }

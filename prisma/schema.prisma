@@ -22,25 +22,27 @@ enum Market {
 }
 
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  email         String    @unique
-  passwordHash  String
-  name          String
-  phone         String?
-  role          Role      @default(PATIENT)
+  id               String       @id @default(auto()) @map("_id") @db.ObjectId
+  email            String       @unique
+  passwordHash     String
+  name             String
+  phone            String?
+  role             Role         @default(PATIENT)
   /// Which patient site the account belongs to: US (root) or NG (/ng). See src/lib/market.ts.
-  market        Market    @default(US)
-  timeZone      String    @default("Africa/Lagos")
-  emailVerified DateTime?
-  failedLogins  Int       @default(0)
-  lockedUntil   DateTime?
-  totpSecret    String?
-  totpEnabled   Boolean   @default(false)
-  consentAt     DateTime?
-  notifyPrefs   NotifyPrefs?
-  deletedAt     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  market           Market       @default(US)
+  timeZone         String       @default("Africa/Lagos")
+  emailVerified    DateTime?
+  failedLogins     Int          @default(0)
+  lockedUntil      DateTime?
+  totpSecret       String?
+  totpEnabled      Boolean      @default(false)
+  /// Stripe customer (US site). Created the first time the patient pays.
+  stripeCustomerId String?
+  consentAt        DateTime?
+  notifyPrefs      NotifyPrefs?
+  deletedAt        DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   sessions       Session[]
   tokens         AuthToken[]
@@ -103,8 +105,8 @@ model AuthToken {
 // ─── Patient ─────────────────────────────────────────────────────────────────
 
 type EmergencyContact {
-  name  String?
-  phone String?
+  name     String?
+  phone    String?
   relation String?
 }
 
@@ -182,22 +184,22 @@ model VisitType {
 }
 
 model Plan {
-  id                    String       @id @default(auto()) @map("_id") @db.ObjectId
-  slug                  String       @unique
-  name                  String
-  tagline               String?
-  monthlyPriceCents     Int
-  monthlyPriceNgn       Int
-  discountPct           Int
-  includedVisits        Int          @default(0)
-  includedVisitTypeIds  String[]     @db.ObjectId
-  includedLabel         String?
-  maxFamilyMembers      Int          @default(1)
-  features              String[]
-  popular               Boolean      @default(false)
-  sortOrder             Int          @default(0)
-  active                Boolean      @default(true)
-  memberships           Membership[]
+  id                   String       @id @default(auto()) @map("_id") @db.ObjectId
+  slug                 String       @unique
+  name                 String
+  tagline              String?
+  monthlyPriceCents    Int
+  monthlyPriceNgn      Int
+  discountPct          Int
+  includedVisits       Int          @default(0)
+  includedVisitTypeIds String[]     @db.ObjectId
+  includedLabel        String?
+  maxFamilyMembers     Int          @default(1)
+  features             String[]
+  popular              Boolean      @default(false)
+  sortOrder            Int          @default(0)
+  active               Boolean      @default(true)
+  memberships          Membership[]
 }
 
 enum LicenseStatus {
@@ -206,13 +208,13 @@ enum LicenseStatus {
 }
 
 model License {
-  id          String        @id @default(auto()) @map("_id") @db.ObjectId
-  regionCode  String        @unique
-  regionName  String
-  credential  String?
-  numberMask  String?
-  renewsAt    DateTime?
-  status      LicenseStatus @default(ACTIVE)
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  regionCode String        @unique
+  regionName String
+  credential String?
+  numberMask String?
+  renewsAt   DateTime?
+  status     LicenseStatus @default(ACTIVE)
 }
 
 model AvailabilityWindow {
@@ -265,19 +267,25 @@ model Membership {
 }
 
 model PaymentMethod {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  brand       String
-  last4       String
-  expMonth    Int
-  expYear     Int
-  country     String   @default("US")
-  isDefault   Boolean  @default(false)
-  provider    String   @default("mock")
-  providerRef String?
-  createdAt   DateTime @default(now())
-  payments    Payment[]
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String    @db.ObjectId
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand            String
+  last4            String
+  expMonth         Int
+  expYear          Int
+  country          String    @default("US")
+  isDefault        Boolean   @default(false)
+  /// mock | stripe | paystack
+  provider         String    @default("mock")
+  /// Reusable token: Stripe PaymentMethod id (pm_…) or Paystack authorization code. Never card data.
+  providerRef      String?
+  /// Stripe customer id, or the email the Paystack authorization belongs to.
+  providerCustomer String?
+  /// Same physical card across payments (Stripe card fingerprint / Paystack signature), to avoid duplicates.
+  fingerprint      String?
+  createdAt        DateTime  @default(now())
+  payments         Payment[]
 }
 
 enum PaymentKind {
@@ -309,6 +317,7 @@ model Payment {
   paymentMethodId String?        @db.ObjectId
   paymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
   provider        String         @default("mock")
+  /// Charge reference used for refunds: Stripe PaymentIntent id or Paystack transaction reference.
   providerRef     String?
   failureReason   String?
   refundedCents   Int            @default(0)
@@ -318,6 +327,33 @@ model Payment {
   refunds         Refund[]
 
   @@index([patientId, createdAt])
+}
+
+/// A hosted checkout page (Stripe Checkout or Paystack) a patient was sent to. Card details are
+/// entered only on the provider's page. The Payment row is created once the provider confirms
+/// the money arrived (return URL or webhook, whichever comes first; see src/lib/checkout.ts).
+model Checkout {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String   @db.ObjectId
+  /// VISIT | MEMBERSHIP | CARD (save a card without buying anything)
+  purpose       String
+  /// stripe | paystack
+  provider      String
+  /// Stripe Checkout Session id or Paystack transaction reference
+  ref           String?
+  amountCents   Int
+  currency      Currency
+  description   String
+  appointmentId String?  @db.ObjectId
+  planId        String?  @db.ObjectId
+  /// OPEN | PAID | FAILED | REFUNDED
+  status        String   @default("OPEN")
+  failureReason String?
+  paymentId     String?  @db.ObjectId
+  createdAt     DateTime @default(now())
+
+  @@index([ref])
+  @@index([userId, createdAt])
 }
 
 model Refund {
@@ -565,7 +601,7 @@ model DataRequest {
 }
 
 model EmailOutbox {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
   to        String
   subject   String
   text      String
@@ -573,5 +609,24 @@ model EmailOutbox {
   template  String
   sentAt    DateTime?
   error     String?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+}
+
+/// WebRTC signalling for peer-to-peer video visits (VIDEO_PROVIDER=p2p). Short-lived: deleted when
+/// the visit ends and swept by the daily job.
+model VideoSignal {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  appointmentId String   @db.ObjectId
+  /// "doctor" | "patient"
+  role          String
+  /// Random id for one open browser tab; a reload starts a new session and a fresh connection.
+  session       String
+  /// Session this signal is addressed to (offer/answer/candidate); null for "hello".
+  to            String?
+  /// "hello" | "offer" | "answer" | "candidate"
+  kind          String
+  payload       String?
+  createdAt     DateTime @default(now())
+
+  @@index([appointmentId, role, createdAt])
 }

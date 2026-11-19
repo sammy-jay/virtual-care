@@ -30,6 +30,7 @@ export default async function DoctorVideoRoom({ params }: PageProps<"/doctor/vis
           title={a.patient?.name ?? "Patient"}
           remoteName={a.patient?.name ?? "Patient"}
           dailyUrl={info.provider === "daily" ? info.url : undefined}
+          iceServers={info.provider === "p2p" ? info.iceServers : undefined}
           onLeaveHref={`/doctor/visits/${a.id}/notes`}
           endAction={endVisit}
         />

@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { sendEmail } from "@/lib/email";
+import { emailDoctors, sendEmail } from "@/lib/email";
 import { shortName } from "@/lib/format";
 import { notify, notifyDoctors } from "@/lib/notify";
 import { fmtTime, listDateLabel } from "@/lib/time";
@@ -34,12 +34,15 @@ export async function postMessage(opts: { conversationId: string; senderId: stri
   const body = opts.body.trim().slice(0, 4000);
   if (!body) return;
   const c = await db.conversation.findUniqueOrThrow({ where: { id: opts.conversationId }, include: { patient: true } });
+  // Email only for the first unread message, so a burst of messages sends one email, not ten.
+  const alreadyUnread = await db.message.count({ where: { conversationId: c.id, fromDoctor: opts.fromDoctor, readAt: null } });
   await db.message.create({ data: { conversationId: c.id, senderId: opts.senderId, fromDoctor: opts.fromDoctor, body } });
   await db.conversation.update({ where: { id: c.id }, data: { lastMessageAt: new Date() } });
   if (opts.fromDoctor) {
-    if (c.patient.notifyPrefs?.newMessages !== false) await sendEmail(c.patient.email, { template: "new_message" });
+    if (!alreadyUnread && c.patient.notifyPrefs?.newMessages !== false) await sendEmail(c.patient.email, { template: "new_message" });
     await notify(c.patientId, { category: "MESSAGES", title: "New message", body: `Dr. Oparaji: “${body.slice(0, 60)}${body.length > 60 ? "…" : ""}”`, href: "/portal/messages" });
   } else {
     await notifyDoctors({ category: "MESSAGES", title: `New message from ${shortName(c.patient.name)}`, body: `“${body.slice(0, 40)}${body.length > 40 ? "…" : ""}”`, href: `/doctor/messages?c=${c.id}` });
+    if (!alreadyUnread) await emailDoctors({ template: "doctor_new_message", patient: shortName(c.patient.name), conversationId: c.id });
   }
 }

@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { Alert, Field } from "@/components/ui";
 import { saveProfile, type ProfileState } from "./actions";
 
-export function ProfileForm({ initial, sections }: { initial: Record<string, string>; sections: { label: string; done: boolean }[] }) {
+export function ProfileForm({ initial, sections, today }: { initial: Record<string, string>; sections: { label: string; done: boolean }[]; today: string }) {
   const [s, action, pending] = useActionState<ProfileState, FormData>(saveProfile, {});
   const v = s.values ?? initial;
   const e = s.errors ?? {};
@@ -20,7 +20,7 @@ export function ProfileForm({ initial, sections }: { initial: Record<string, str
           <p className="text-[13px] text-muted">Basic details</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <Field label="Full name" name="name" defaultValue={v.name} error={e.name} autoComplete="name" />
-            <Field label="Date of birth" name="dob" placeholder="DD / MM / YYYY" defaultValue={v.dob} error={e.dob} autoComplete="bday" />
+            <Field label="Date of birth" name="dob" type="date" min="1900-01-01" max={today} defaultValue={v.dob} error={e.dob} autoComplete="bday" />
             <Field label="Phone" name="phone" type="tel" defaultValue={v.phone} error={e.phone} autoComplete="tel" />
           </div>
         </section>
