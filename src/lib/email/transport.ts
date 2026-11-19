@@ -16,7 +16,7 @@ export function fromAddress() {
   const from = process.env.EMAIL_FROM?.trim();
   if (from) return from;
   const user = process.env.SMTP_USER?.trim();
-  return user ? `Dr. Oparaji · Virtual Care <${user}>` : "Dr. Oparaji · Virtual Care <care@example.com>";
+  return user ? `Dr. Oparaji · Virtual Care <${user}>` : "Dr. Oparaji · Virtual Care <admin@nneomaoparaji.com>";
 }
 
 let smtp: Transporter | null = null;
