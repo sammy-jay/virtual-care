@@ -50,6 +50,33 @@ test("the footer toggle switches sites, and the choice sticks over location", as
   await ctx.close();
 });
 
+test("the switch at the top of the homepage changes site too", async ({ browser }) => {
+  const ctx = await browser.newContext({ extraHTTPHeaders: { "x-vercel-ip-country": "NG" } });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/ng$/);
+  const top = page.getByRole("group", { name: "Choose your site" });
+  await expect(top.getByRole("button", { name: "Nigeria" })).toHaveAttribute("aria-pressed", "true");
+
+  await top.getByRole("button", { name: "United States" }).click();
+  await expect(page).toHaveURL(/:\d+\/$/);
+  await expect(page.getByText(/Licensed in \d+ US states/).first()).toBeVisible();
+  await expect(top.getByRole("button", { name: "United States" })).toHaveAttribute("aria-pressed", "true");
+  await ctx.close();
+});
+
+test("on a narrow phone the homepage switch sits on its own line above the pill", async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 360, height: 740 }, extraHTTPHeaders: { "x-vercel-ip-country": "US" } });
+  const page = await ctx.newPage();
+  await page.goto("/");
+  const toggle = (await page.getByRole("group", { name: "Choose your site" }).boundingBox())!;
+  const pill = (await page.getByText(/Licensed in \d+ US states/).first().boundingBox())!;
+  expect(toggle.y + toggle.height).toBeLessThan(pill.y); // above the pill, not squeezed beside it
+  expect(Math.round(pill.height)).toBeLessThan(44); // the pill's text stays on one line (36px; two lines would be ~56)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360); // nothing pokes off the side
+  await ctx.close();
+});
+
 test("US visitors stay at the root and see the licensure map", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/:\d+\/$/);

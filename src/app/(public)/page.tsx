@@ -9,6 +9,7 @@ import { getLicensure } from "@/lib/licensure";
 import { MARKETS } from "@/lib/market";
 import { getMarket } from "@/lib/market-server";
 import { LicensureMap } from "@/components/public/licensure-map";
+import { SiteToggle } from "@/components/public/site-toggle";
 import { dayKey, fmt, fmtTime, nowMs } from "@/lib/time";
 
 export default async function HomePage() {
@@ -27,9 +28,13 @@ export default async function HomePage() {
       <PublicHero>
         <div className="flex flex-wrap items-center gap-14 pb-20 pt-8 md:pb-28 md:pt-14">
           <div className="min-w-0 flex-[1_1_560px]">
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-[#E1ECE6] bg-white py-[7px] pl-2.5 pr-3.5 text-[13px] font-semibold text-forest">
-              <span className="size-2 rounded-full bg-coral" />
-              {ng ? "Virtual care · Across Nigeria" : `Virtual care · Licensed in ${stateCount} US states`}
+            {/* The site switch gets its own line above the pill, so neither ever wraps on a phone. */}
+            <div className="flex flex-col items-start gap-3">
+              <SiteToggle variant="hero" />
+              <div className="inline-flex items-center gap-2.5 rounded-full border border-[#E1ECE6] bg-white py-[7px] pl-2.5 pr-3.5 text-[13px] font-semibold text-forest">
+                <span className="size-2 rounded-full bg-coral" />
+                {ng ? "Virtual care · Across Nigeria" : `Virtual care · Licensed in ${stateCount} US states`}
+              </div>
             </div>
             <h1 className="h-display mt-7 text-[52px] leading-[.98] tracking-[-.025em] md:text-[84px]">
               Healthy living that <em className="italic text-forest">honours</em> who you are.
