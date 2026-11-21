@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { firstName, money, moneyShort } from "@/lib/format";
 import { profileSections } from "@/lib/profile";
 import { fmt, fmtShort, fmtTime, greeting, zoneAbbr } from "@/lib/time";
+import { planPriceCents } from "@/lib/pricing";
 import { priceLabel, roomWindow } from "@/lib/visit-labels";
 
 export const metadata: Metadata = { title: "Overview" };
@@ -146,7 +147,7 @@ export default async function OverviewPage() {
           {membership ? (
             <>
               <div className="mt-1.5 font-display text-2xl">
-                {membership.plan.name} · {moneyShort(membership.plan.monthlyPriceCents)}/mo
+                {membership.plan.name} · {moneyShort(planPriceCents(membership.plan, membership.currency), membership.currency)}/mo
               </div>
               {membership.plan.includedVisits > 0 ? (
                 <>

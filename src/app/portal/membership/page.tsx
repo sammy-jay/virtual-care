@@ -4,10 +4,10 @@ import { Modal, ModalActions, ModalSummary } from "@/components/modal";
 import { Icon } from "@/components/icons";
 import { Alert, Button, ButtonLink, Card, Eyebrow, PageTitle, Row } from "@/components/ui";
 import { requirePatient } from "@/lib/auth/dal";
-import { allowanceUsed, getActiveMembership, getPlans, getVisitTypes } from "@/lib/care";
+import { allowanceUsed, getActiveMembership, getPlans, getVisitTypes, pricesFor } from "@/lib/care";
 import { db } from "@/lib/db";
 import { cn, money, moneyShort } from "@/lib/format";
-import { prorate } from "@/lib/pricing";
+import { planPriceCents, prorate } from "@/lib/pricing";
 import { fmtShort } from "@/lib/time";
 import { cancelMembership, resumeMembership, switchPlan } from "../billing/actions";
 
@@ -17,11 +17,12 @@ export default async function PatientMembershipPage({ searchParams }: PageProps<
   const user = await requirePatient();
   const sp = await searchParams;
   const tz = user.timeZone;
-  const [m, plans, payments, types] = await Promise.all([
+  const [m, plans, payments, types, shown] = await Promise.all([
     getActiveMembership(user.id),
     getPlans(),
     db.payment.findMany({ where: { patientId: user.id, amountCents: { gt: 0 } }, orderBy: { createdAt: "desc" }, take: 3 }),
     getVisitTypes(),
+    pricesFor(user.id),
   ]);
   const used = m ? await allowanceUsed(m, new Date()) : 0;
   const reserved = m
@@ -30,8 +31,9 @@ export default async function PatientMembershipPage({ searchParams }: PageProps<
   const pm = m?.paymentMethodId ? await db.paymentMethod.findUnique({ where: { id: m.paymentMethodId } }) : null;
   const dialog = typeof sp.dialog === "string" ? sp.dialog : null;
   const target = plans.find((p) => p.slug === sp.plan);
-  const price = (p: (typeof plans)[number]) => (m?.currency === "NGN" ? p.monthlyPriceNgn * 100 : p.monthlyPriceCents);
-  const cur = m?.currency ?? "USD";
+  // Members see their membership's currency; everyone else the currency their account pays in.
+  const cur = m?.currency ?? shown.currency;
+  const price = (p: (typeof plans)[number]) => planPriceCents(p, cur);
   const followUp = types.find((t) => t.slug === "follow-up");
   const switchable = m ? plans.filter((p) => p.id !== m.planId) : [];
 
@@ -203,7 +205,7 @@ export default async function PatientMembershipPage({ searchParams }: PageProps<
             {[
               reserved ? `Your reserved visit on ${fmtShort(reserved.startsAt, tz)} stays included` : "Book any included visit before the period ends",
               `Messaging stays open until ${fmtShort(m.currentPeriodEnd, tz)}, then 14 days after your last visit`,
-              `After ${fmtShort(m.currentPeriodEnd, tz)}, visits are ${followUp ? moneyShort(followUp.priceCents) : "standard price"} and the ${m.plan.discountPct}% member rate ends`,
+              `After ${fmtShort(m.currentPeriodEnd, tz)}, visits are ${followUp ? shown.visit(followUp.priceCents) : "standard price"} and the ${m.plan.discountPct}% member rate ends`,
             ].map((t) => (
               <li key={t} className="flex gap-2.5">
                 <Icon name="check" size={18} strokeWidth={2.4} className="mt-0.5 text-forest" />

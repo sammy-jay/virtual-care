@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Alert, Button, ButtonLink, Card, Eyebrow, StatusTag } from "@/components/ui";
 import { requireDoctor } from "@/lib/auth/dal";
-import { getPlans, getVisitTypes } from "@/lib/care";
+import { getPlans, getPractice, getVisitTypes } from "@/lib/care";
 import { db } from "@/lib/db";
 import { money, moneyShort } from "@/lib/format";
-import { memberRateCents } from "@/lib/pricing";
+import { memberRateCents, usdToNgnKobo } from "@/lib/pricing";
 import { fmt, listDateLabel, PRACTICE_TZ } from "@/lib/time";
 import { closeInquiry, replyInquiry } from "../../../actions";
 import { TemplatePicker } from "./template-picker";
@@ -14,13 +14,13 @@ export const metadata: Metadata = { title: "Inquiry" };
 
 /** Simple keyword matcher for the "Suggested answer" card, using live prices. */
 async function suggest(text: string) {
-  const [types, plans] = await Promise.all([getVisitTypes(), getPlans()]);
+  const [types, plans, { ngnPerUsd }] = await Promise.all([getVisitTypes(), getPlans(), getPractice()]);
   const t = text.toLowerCase();
   const thrive = plans.find((p) => p.popular) ?? plans[0];
   const coaching = types.find((v) => v.slug === "family-coaching");
   const covers = plans.filter((p) => coaching && p.includedVisitTypeIds.includes(coaching.id));
   if (/coach|family|husband|wife|together/.test(t) && coaching && thrive)
-    return `Family coaching is a ${coaching.durationMin}-minute visit at ${money(coaching.priceCents)}, or ${money(memberRateCents(coaching, thrive))} for ${thrive.name} members.${covers.length ? ` ${covers.map((p) => p.name).join(", ")} members get coaching included.` : ""}`;
+    return `Family coaching is a ${coaching.durationMin}-minute visit at ${moneyShort(coaching.priceCents)} (${moneyShort(usdToNgnKobo(coaching.priceCents, ngnPerUsd), "NGN")} in Nigeria), or ${moneyShort(memberRateCents(coaching, thrive))} (${moneyShort(usdToNgnKobo(memberRateCents(coaching, thrive), ngnPerUsd), "NGN")}) for ${thrive.name} members.${covers.length ? ` ${covers.map((p) => p.name).join(", ")} members get coaching included.` : ""}`;
   if (/abuja|lagos|nigeria|texas|houston|licen|where/.test(t)) {
     const lic = await db.license.findMany({ where: { status: "ACTIVE" } });
     return `Dr. Oparaji sees patients located in ${lic.map((l) => l.regionName).join(" and ")}. Patients confirm their location when they book.`;

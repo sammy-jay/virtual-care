@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { Icon, type IconName } from "@/components/icons";
 import { Alert, Avatar, ButtonLink, Card, Eyebrow } from "@/components/ui";
 import { requireDoctor } from "@/lib/auth/dal";
-import { unreadForDoctor } from "@/lib/care";
+import { getPractice, unreadForDoctor } from "@/lib/care";
 import { db } from "@/lib/db";
-import { initials, money, pluralize, shortName } from "@/lib/format";
+import { initials, money, pluralize, shortName, toUsdCents } from "@/lib/format";
 import { dayKey, fmt, fmtTime, greeting, PRACTICE_TZ, zoneAbbr, zonedWallToUtc, nowMs } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -35,7 +35,9 @@ export default async function DoctorDashboard({ searchParams }: PageProps<"/doct
     db.inquiry.count({ where: { status: "NEW" } }),
     db.dataRequest.findFirst({ where: { status: "OPEN" }, orderBy: { dueAt: "asc" } }),
   ]);
-  const gross = monthPayments.reduce((s, p) => s + p.amountCents - p.refundedCents, 0);
+  // In dollars, naira converted at the practice rate (same as Earnings). Never add kobo to cents.
+  const { ngnPerUsd } = await getPractice();
+  const gross = monthPayments.reduce((s, p) => s + toUsdCents(p.amountCents - p.refundedCents, p.currency, ngnPerUsd), 0);
   const next = todays.find((a) => a.status === "SCHEDULED" && a.endsAt > new Date());
   const paidOrIncluded = todays.filter((a) => a.pricingReason === "INCLUDED" || a.priceCents > 0).length;
 

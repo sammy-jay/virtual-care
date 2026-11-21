@@ -7,16 +7,15 @@ import { Alert, Button, ButtonLink, Card, Eyebrow, PageTitle } from "@/component
 import { requireDoctor } from "@/lib/auth/dal";
 import { getPractice } from "@/lib/care";
 import { db } from "@/lib/db";
-import { money } from "@/lib/format";
+import { money, toUsdCents } from "@/lib/format";
+import { planPriceCents } from "@/lib/pricing";
 import { addMonths, fmt, fmtShort, PRACTICE_TZ, zonedWallToUtc } from "@/lib/time";
 import { savePayout } from "../../actions";
 
 export const metadata: Metadata = { title: "Earnings" };
 
-const net = (p: { amountCents: number; refundedCents: number; currency: string }, ngnPerUsd: number) => {
-  const c = p.amountCents - p.refundedCents;
-  return p.currency === "NGN" ? Math.round(c / ngnPerUsd) : c;
-};
+// Totals are reported in dollars; naira payments are converted at the practice rate.
+const net = (p: { amountCents: number; refundedCents: number; currency: string }, ngnPerUsd: number) => toUsdCents(p.amountCents - p.refundedCents, p.currency, ngnPerUsd);
 
 export default async function EarningsPage({ searchParams }: PageProps<"/doctor/earnings">) {
   await requireDoctor();
@@ -28,14 +27,21 @@ export default async function EarningsPage({ searchParams }: PageProps<"/doctor/
   const [payments, members, refunds, recent, visits] = await Promise.all([
     db.payment.findMany({ where: { createdAt: { gte: sixAgo }, status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] } } }),
     db.membership.findMany({ where: { status: { in: ["ACTIVE", "PAST_DUE"] } }, include: { plan: true } }),
-    db.refund.findMany({ where: { createdAt: { gte: monthStart } } }),
+    db.refund.findMany({ where: { createdAt: { gte: monthStart } }, include: { payment: { select: { currency: true } } } }),
     db.payment.findMany({ where: { amountCents: { gt: 0 }, status: { not: "FAILED" } }, orderBy: { createdAt: "desc" }, take: 8, include: { patient: true, paymentMethod: true } }),
     db.appointment.count({ where: { startsAt: { gte: monthStart, lt: new Date() }, status: "COMPLETED" } }),
   ]);
   const thisMonth = payments.filter((p) => p.createdAt >= monthStart);
   const gross = thisMonth.reduce((s, p) => s + net(p, practice.ngnPerUsd), 0);
-  const mrr = members.reduce((s, m) => s + m.plan.monthlyPriceCents, 0);
-  const refunded = refunds.reduce((s, r) => s + r.amountCents, 0);
+  // Each member pays their plan's price in their own currency (Nigeria accounts: the naira price).
+  const mrr = members.reduce((s, m) => s + toUsdCents(planPriceCents(m.plan, m.currency), m.currency, practice.ngnPerUsd), 0);
+  const refunded = refunds.reduce((s, r) => s + toUsdCents(r.amountCents, r.payment.currency, practice.ngnPerUsd), 0);
+  // How much of each figure arrived in naira, shown under it.
+  const naira = {
+    gross: thisMonth.filter((p) => p.currency === "NGN").reduce((s, p) => s + p.amountCents - p.refundedCents, 0),
+    mrr: members.filter((m) => m.currency === "NGN").reduce((s, m) => s + planPriceCents(m.plan, "NGN"), 0),
+    members: members.filter((m) => m.currency === "NGN").length,
+  };
   // Payout: weekly, on Friday; covers paid amounts since the last Friday.
   const d = new Date();
   const daysToFri = (5 - Number(fmt(d, tz, "i")) % 7 + 7) % 7 || 7;
@@ -53,7 +59,7 @@ export default async function EarningsPage({ searchParams }: PageProps<"/doctor/
     <div className="mx-auto max-w-[1140px]">
       <PageTitle
         title="Earnings"
-        subtitle={`${fmt(new Date(), tz, "MMMM yyyy")} · before processor fees`}
+        subtitle={`${fmt(new Date(), tz, "MMMM yyyy")} · before processor fees · in US dollars, naira converted at ₦${practice.ngnPerUsd.toLocaleString("en-US")} per $1`}
         actions={
           <ButtonLink href="/api/doctor/statement.csv" variant="secondary" icon="download" prefetch={false}>
             Download statement
@@ -68,6 +74,7 @@ export default async function EarningsPage({ searchParams }: PageProps<"/doctor/
           <div className="mt-1.5 text-[13px] text-muted">
             {visits} visits · {members.length} members
           </div>
+          {naira.gross > 0 && <div className="text-[13px] text-muted">Includes {money(naira.gross, "NGN")} paid in naira</div>}
         </Card>
         <Card>
           <Eyebrow>Next payout</Eyebrow>
@@ -86,6 +93,11 @@ export default async function EarningsPage({ searchParams }: PageProps<"/doctor/
           <Eyebrow>Memberships</Eyebrow>
           <div className="mt-1.5 num font-display text-[34px] leading-none">{money(mrr, "USD", { compact: true }).split(".")[0]}</div>
           <div className="mt-1.5 text-[13px] text-muted">{members.length} active · MRR</div>
+          {naira.members > 0 && (
+            <div className="text-[13px] text-muted">
+              {naira.members} in Nigeria pay {money(naira.mrr, "NGN")}/mo
+            </div>
+          )}
         </Card>
         <Card>
           <Eyebrow>Refunds</Eyebrow>

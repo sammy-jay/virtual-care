@@ -7,7 +7,7 @@ import { requireDoctor } from "@/lib/auth/dal";
 import { getPractice } from "@/lib/care";
 import { db } from "@/lib/db";
 import { moneyShort } from "@/lib/format";
-import { memberRateCents } from "@/lib/pricing";
+import { memberRateCents, usdToNgnKobo } from "@/lib/pricing";
 import { savePlan, saveVisitType } from "../../actions";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -24,6 +24,13 @@ export default async function DoctorSettingsPage({ searchParams }: PageProps<"/d
     getPractice(),
   ]);
   const refPlan = plans.find((p) => p.popular) ?? plans[0];
+  // Visit prices are set in dollars; Nigeria accounts pay the naira amount at the practice rate.
+  const withNaira = (cents: number) => (
+    <>
+      {moneyShort(cents)}
+      <span className="block text-[12.5px] text-muted">{moneyShort(usdToNgnKobo(cents, practice.ngnPerUsd), "NGN")} in Nigeria</span>
+    </>
+  );
   const dialog = typeof sp.dialog === "string" ? sp.dialog : null;
   const editType = dialog?.startsWith("type-") ? types.find((t) => `type-${t.id}` === dialog) : null;
   const editPlan = dialog?.startsWith("plan-") ? plans.find((p) => `plan-${p.id}` === dialog) : null;
@@ -63,8 +70,8 @@ export default async function DoctorSettingsPage({ searchParams }: PageProps<"/d
               <tr key={t.id} className="border-t border-line-soft">
                 <td className="px-6 py-3 font-bold">{t.name}</td>
                 <td className="px-3">{t.durationMin} min</td>
-                <td className="px-3">{t.alwaysFree ? "Free" : moneyShort(t.priceCents)}</td>
-                <td className="px-3">{t.alwaysFree ? "Free" : refPlan ? moneyShort(memberRateCents(t, refPlan)) : "—"}</td>
+                <td className="px-3 py-2">{t.alwaysFree ? "Free" : withNaira(t.priceCents)}</td>
+                <td className="px-3 py-2">{t.alwaysFree ? "Free" : refPlan ? withNaira(memberRateCents(t, refPlan)) : "—"}</td>
                 <td className="px-6 text-right">
                   <Link href={`/doctor/settings?dialog=type-${t.id}`} className="text-sm font-bold text-forest">
                     Edit
@@ -96,7 +103,10 @@ export default async function DoctorSettingsPage({ searchParams }: PageProps<"/d
             {plans.map((p) => (
               <tr key={p.id} className="border-t border-line-soft">
                 <td className="px-6 py-3 font-bold">{p.name}</td>
-                <td className="px-3">{moneyShort(p.monthlyPriceCents)}</td>
+                <td className="px-3 py-2">
+                  {moneyShort(p.monthlyPriceCents)}
+                  <span className="block text-[12.5px] text-muted">{moneyShort(p.monthlyPriceNgn * 100, "NGN")} in Nigeria</span>
+                </td>
                 <td className="px-3">{p.includedLabel ?? p.includedVisits}</td>
                 <td className="px-3">{p.discountPct}%</td>
                 <td className="px-6 text-right">

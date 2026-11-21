@@ -4,7 +4,8 @@ import { ButtonLink, Card, Eyebrow, Row, StatusTag } from "@/components/ui";
 import { allowanceUsed } from "@/lib/care";
 import { db } from "@/lib/db";
 import { loadPatientRecord } from "@/lib/doctor-data";
-import { money, moneyShort } from "@/lib/format";
+import { money, moneyShort, moneyTotals, sumByCurrency } from "@/lib/format";
+import { planPriceCents } from "@/lib/pricing";
 import { fmt, fmtShort, fmtTime, PRACTICE_TZ, zoneAbbr } from "@/lib/time";
 
 export default async function PatientRecordOverview({ params }: PageProps<"/doctor/patients/[id]">) {
@@ -14,11 +15,13 @@ export default async function PatientRecordOverview({ params }: PageProps<"/doct
   const [next, history, paid, weights] = await Promise.all([
     db.appointment.findFirst({ where: { patientId: id, status: "SCHEDULED", endsAt: { gte: new Date() } }, orderBy: { startsAt: "asc" }, include: { visitType: true } }),
     db.appointment.findMany({ where: { patientId: id, status: { in: ["COMPLETED", "NO_SHOW"] } }, orderBy: { startsAt: "desc" }, take: 5, include: { visitType: true, carePlan: true } }),
-    db.payment.aggregate({ where: { patientId: id, status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] } }, _sum: { amountCents: true, refundedCents: true } }),
+    db.payment.findMany({ where: { patientId: id, status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] } }, select: { amountCents: true, refundedCents: true, currency: true } }),
     db.measurement.findMany({ where: { patientId: id, kind: "WEIGHT" }, orderBy: { takenAt: "asc" } }),
   ]);
   const used = membership ? await allowanceUsed(membership, new Date()) : 0;
-  const lifetime = (paid._sum.amountCents ?? 0) - (paid._sum.refundedCents ?? 0);
+  // In the currencies the patient actually paid; naira and dollars are never added together.
+  const lifetime = sumByCurrency(paid, (x) => x.amountCents - x.refundedCents, (x) => x.currency);
+  const ccy = membership?.currency ?? (patient.market === "NG" ? "NGN" : "USD");
   const p = patient.profile;
   return (
     <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
@@ -90,13 +93,13 @@ export default async function PatientRecordOverview({ params }: PageProps<"/doct
         <Card>
           <Eyebrow>Billing</Eyebrow>
           <div className="mt-2">
-            <Row label="Plan">{membership ? `${membership.plan.name} · ${moneyShort(membership.plan.monthlyPriceCents)}/mo` : "Pay per visit"}</Row>
+            <Row label="Plan">{membership ? `${membership.plan.name} · ${moneyShort(planPriceCents(membership.plan, membership.currency), membership.currency)}/mo` : "Pay per visit"}</Row>
             {membership && membership.plan.includedVisits > 0 && (
               <Row label="Included visit">
                 {used} of {membership.plan.includedVisits} {next?.usesAllowance ? "reserved" : "used"}
               </Row>
             )}
-            <Row label="Lifetime paid">{money(lifetime)}</Row>
+            <Row label="Lifetime paid">{moneyTotals(lifetime, { empty: ccy })}</Row>
           </div>
         </Card>
       </div>

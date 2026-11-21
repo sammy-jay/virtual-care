@@ -4,7 +4,8 @@ import { Alert, Card, Eyebrow, StatusTag } from "@/components/ui";
 import { allowanceUsed } from "@/lib/care";
 import { db } from "@/lib/db";
 import { loadPatientRecord } from "@/lib/doctor-data";
-import { money, moneyShort } from "@/lib/format";
+import { money, moneyShort, moneyTotals, sumByCurrency } from "@/lib/format";
+import { planPriceCents } from "@/lib/pricing";
 import { fmtShort, PRACTICE_TZ } from "@/lib/time";
 
 export default async function RecordBilling({ params, searchParams }: PageProps<"/doctor/patients/[id]/billing">) {
@@ -15,7 +16,8 @@ export default async function RecordBilling({ params, searchParams }: PageProps<
   const used = membership ? await allowanceUsed(membership, new Date()) : 0;
   const reserved = membership ? await db.appointment.findFirst({ where: { membershipId: membership.id, usesAllowance: true, status: "SCHEDULED", startsAt: { gte: new Date() } } }) : null;
   const life = payments.filter((p) => p.status !== "FAILED");
-  const total = life.reduce((s, p) => s + p.amountCents - p.refundedCents, 0);
+  const total = sumByCurrency(life, (p) => p.amountCents - p.refundedCents, (p) => p.currency);
+  const ccy = membership?.currency ?? (payments[0]?.patient.market === "NG" ? "NGN" : "USD");
   const refunding = typeof sp.refund === "string" ? payments.find((p) => p.id === sp.refund) : null;
   const base = `/doctor/patients/${id}/billing`;
   return (
@@ -27,7 +29,7 @@ export default async function RecordBilling({ params, searchParams }: PageProps<
           <div className="mt-1.5 font-display text-2xl">{membership?.plan.name ?? "Pay per visit"}</div>
           {membership && (
             <div className="text-sm text-muted">
-              {moneyShort(membership.plan.monthlyPriceCents)}/mo · renews {fmtShort(membership.currentPeriodEnd, PRACTICE_TZ)}
+              {moneyShort(planPriceCents(membership.plan, membership.currency), membership.currency)}/mo · renews {fmtShort(membership.currentPeriodEnd, PRACTICE_TZ)}
             </div>
           )}
         </Card>
@@ -38,7 +40,7 @@ export default async function RecordBilling({ params, searchParams }: PageProps<
         </Card>
         <Card>
           <Eyebrow>Lifetime paid</Eyebrow>
-          <div className="mt-1.5 font-display text-2xl">{money(total)}</div>
+          <div className="mt-1.5 font-display text-2xl">{moneyTotals(total, { empty: ccy })}</div>
           <div className="text-sm text-muted">{life.length} payments</div>
         </Card>
       </div>
