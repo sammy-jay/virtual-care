@@ -9,6 +9,7 @@ import { Icon } from "@/components/icons";
 import { ButtonLink } from "@/components/ui";
 import { MobileMenu, NavLinks } from "./nav-links";
 import { PUBLIC_NAV } from "./nav-items";
+import { SiteToggle } from "./site-toggle";
 
 export const Container = ({ children, className = "" }: { children: ReactNode; className?: string }) => (
   <div className={`mx-auto w-full max-w-[1240px] px-4 sm:px-10 ${className}`}>{children}</div>
@@ -253,8 +254,9 @@ export async function PublicFooter() {
           </div>
         </div>
       </Container>
-      <Container className="border-t border-[#C9DDD3] py-[22px] text-[13px] text-[#4F6A5F]">
-        Information on this site is educational and is not a substitute for medical advice.
+      <Container className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 border-t border-[#C9DDD3] py-[18px] text-[13px] text-[#4F6A5F]">
+        <span>Information on this site is educational and is not a substitute for medical advice.</span>
+        <SiteToggle />
       </Container>
     </footer>
   );

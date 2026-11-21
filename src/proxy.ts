@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isMarket, MARKET_COOKIE, MARKET_HEADER, marketFromPath, PATH_HEADER, stripMarket, withMarket, type Market } from "@/lib/market";
+import { isMarket, MARKET_COOKIE, MARKET_HEADER, marketFromPath, PATH_HEADER, SITE_COOKIE, stripMarket, withMarket, type Market } from "@/lib/market";
 
 const YEAR = 60 * 60 * 24 * 365;
 const SIGNED_IN_ONLY = /^\/(portal|room)(\/|$)/;
@@ -9,6 +9,8 @@ const SIGNED_IN_ONLY = /^\/(portal|room)(\/|$)/;
  *    - Public and sign-in pages follow the visitor's current location (x-vercel-ip-country on
  *      Vercel): in Nigeria → /ng, anywhere else → the root. When the location is unknown (local
  *      development) the URL is respected.
+ *    - A visitor who picks a site with the footer toggle (vc_site cookie) gets that site instead of
+ *      the one for their location, until they toggle again.
  *    - The patient portal follows the account instead, so a patient who travels keeps their own
  *      portal. The vc_market cookie (set at sign-in) and src/lib/auth/dal.ts take care of that.
  *    /ng/* is rewritten onto the shared routes with the market in the x-market request header.
@@ -48,10 +50,12 @@ export function proxy(req: NextRequest) {
       return NextResponse.redirect(url);
     }
   } else {
-    // Public and sign-in pages follow where the visitor is right now.
+    // Public and sign-in pages: the site the visitor picked in the footer, otherwise where they are right now.
+    const chosen = req.cookies.get(SITE_COOKIE)?.value;
     const country = req.headers.get("x-vercel-ip-country");
     const located: Market | null = country ? (country.toUpperCase() === "NG" ? "ng" : "us") : null;
-    if (located && located !== onNg) return NextResponse.redirect(new URL(withMarket(route, located) + search, req.url));
+    const want = isMarket(chosen) ? chosen : located;
+    if (want && want !== onNg) return NextResponse.redirect(new URL(withMarket(route, want) + search, req.url));
   }
 
   const headers = new Headers(req.headers);

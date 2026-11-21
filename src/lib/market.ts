@@ -2,7 +2,7 @@
  * The practice runs two patient-facing sites from one codebase:
  *   - United States at the root ("/", "/portal", …)
  *   - Nigeria under "/ng" ("/ng", "/ng/portal", …)
- * src/proxy.ts picks the site (explicit choice → cookie → IP country), rewrites "/ng/*" onto the shared
+ * src/proxy.ts picks the site (footer toggle choice → IP country), rewrites "/ng/*" onto the shared
  * routes and passes the market down in the `x-market` request header. Each patient account belongs to
  * one market; the doctor portal ("/doctor") is shared and never prefixed.
  */
@@ -10,6 +10,8 @@ export type Market = "us" | "ng";
 export type DbMarket = "US" | "NG";
 
 export const MARKET_COOKIE = "vc_market";
+/** The site a visitor picked with the footer toggle. Wins over their location on public pages. */
+export const SITE_COOKIE = "vc_site";
 export const MARKET_HEADER = "x-market";
 export const PATH_HEADER = "x-pathname";
 
