@@ -22,7 +22,7 @@ export default async function ServicesPage() {
   const [types, plans, market, practice] = await Promise.all([getVisitTypes(), getPlans(), getMarket(), getPractice()]);
   // Visit prices are set in USD; Nigeria accounts pay the naira amount at the practice rate.
   const approxNgn = (cents: number) => moneyShort(usdToNgnKobo(cents, practice.ngnPerUsd), "NGN");
-  const thrive = plans.find((p) => p.popular);
+  const thrive = plans.find((p) => p.popular) ?? plans[0];
   const badge = (slug: string, id: string) => {
     if (slug === "intro") return "Free";
     if (slug === "initial-consultation") return "Most thorough";

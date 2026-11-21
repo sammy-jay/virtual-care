@@ -8,6 +8,7 @@ import { fromZonedTime, formatInTimeZone } from "date-fns-tz";
 import { explicitNulls } from "./explicit-nulls";
 import { US_STATES } from "../src/lib/regions";
 import { usdToNgnKobo } from "../src/lib/pricing";
+import { membershipPlanData } from "../src/lib/plan-catalog";
 
 /** Nigeria accounts pay in naira (Paystack) at the practice rate; amounts in kobo. */
 const NGN_PER_USD = 1500;
@@ -67,9 +68,8 @@ async function main() {
   const coaching = await db.visitType.create({ data: { slug: "family-coaching", name: "Family coaching", durationMin: 45, priceCents: 14000, sortOrder: 3, tagline: "Bring a spouse, parent or child. Build shared meals and habits the whole household can keep.", description: "For couples and families" } });
 
   // ── Plans (01.6 is the single rule set; see PLAN.md "Conflicts") ──
-  const connect = await db.plan.create({ data: { slug: "connect", name: "Connect", tagline: "Stay in touch between visits.", monthlyPriceCents: 5900, monthlyPriceNgn: 88500, discountPct: 15, includedVisits: 0, includedLabel: "None", sortOrder: 0, features: ["Secure messaging with Dr. Oparaji", "Replies within 1 business day", "15% off every visit", "Access to care plans and receipts"] } });
-  const thrive = await db.plan.create({ data: { slug: "thrive", name: "Thrive", tagline: "Ongoing care with a monthly visit.", monthlyPriceCents: 12900, monthlyPriceNgn: 193500, discountPct: 15, includedVisits: 1, includedVisitTypeIds: [followUp.id], includedLabel: "1 follow-up", popular: true, sortOrder: 1, features: ["Everything in Connect", "1 follow-up visit included each month", "Priority scheduling", "15% off other visits"] } });
-  const family = await db.plan.create({ data: { slug: "family-focus", name: "Family Focus", tagline: "For households building habits together.", monthlyPriceCents: 22900, monthlyPriceNgn: 343500, discountPct: 15, includedVisits: 3, includedVisitTypeIds: [followUp.id, coaching.id], includedLabel: "3 visits + coaching", maxFamilyMembers: 4, sortOrder: 2, features: ["Everything in Thrive", "3 visits included each month", "Family coaching included", "Add up to 3 family members"] } });
+  // One membership for now ($149 / ₦200,000 a month): src/lib/plan-catalog.ts.
+  const thrive = await db.plan.create({ data: membershipPlanData([followUp.id]) });
 
   // ── Licensure (09.17) ──
   // US states Dr. Oparaji is licensed in (from the practice). Numbers and renewal dates are entered
@@ -140,8 +140,8 @@ async function main() {
   const periodStart = new Date(now.getTime() - 8 * day);
   const periodEnd = new Date(periodStart.getTime() + 30 * day);
   const mAdaeze = await db.membership.create({ data: { patientId: adaeze.id, planId: thrive.id, currency: "NGN", currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: visa.id, createdAt: periodStart } });
-  const mTunde = await db.membership.create({ data: { patientId: tunde.id, planId: family.id, currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: tundePm.id } });
-  const mNgozi = await db.membership.create({ data: { patientId: ngozi.id, planId: connect.id, currency: "NGN", currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: ngoziPm.id } });
+  const mTunde = await db.membership.create({ data: { patientId: tunde.id, planId: thrive.id, currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: tundePm.id } });
+  const mNgozi = await db.membership.create({ data: { patientId: ngozi.id, planId: thrive.id, currency: "NGN", currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: ngoziPm.id } });
   const mMercy = await db.membership.create({ data: { patientId: mercy.id, planId: thrive.id, currency: "NGN", currentPeriodStart: periodStart, currentPeriodEnd: periodEnd, paymentMethodId: mercyPm.id } });
 
   // ── Appointments ──
@@ -173,11 +173,11 @@ async function main() {
   const aNext = await appt({ patientId: adaeze.id, visitTypeId: followUp.id, startsAt: at(3, 13), durationMin: 30, status: "SCHEDULED", priceCents: 0, pricingReason: "INCLUDED", usesAllowance: true, membershipId: mAdaeze.id, reason: "Appetite and sleep. Check-in on meal plan. Snack questions." });
 
   // Today's list for the doctor dashboard (09.1)
-  const tToday = await appt({ patientId: tunde.id, visitTypeId: coaching.id, startsAt: at(0, 14), durationMin: 45, status: "SCHEDULED", priceCents: 0, pricingReason: "INCLUDED", usesAllowance: true, membershipId: mTunde.id, reason: "Family meal planning" }, CDT, "US-TX");
+  const tToday = await appt({ patientId: tunde.id, visitTypeId: followUp.id, startsAt: at(0, 14), durationMin: 30, status: "SCHEDULED", priceCents: 0, pricingReason: "INCLUDED", usesAllowance: true, membershipId: mTunde.id, reason: "Family meal planning" }, CDT, "US-TX");
   const cToday = await appt({ patientId: chidi.id, visitTypeId: initial.id, startsAt: at(0, 16), durationMin: 60, status: "SCHEDULED", priceCents: 18000, pricingReason: "STANDARD", reason: "Blood pressure and weight" }, CDT, "US-TX");
   await appt({ patientId: ife.id, visitTypeId: intro.id, startsAt: at(0, 17, 30), durationMin: 15, status: "SCHEDULED", priceCents: 0, pricingReason: "FREE", reason: "Family coaching for two" });
   await appt({ patientId: mercy.id, visitTypeId: followUp.id, startsAt: at(1, 14), durationMin: 30, status: "SCHEDULED", priceCents: 0, pricingReason: "INCLUDED", usesAllowance: true, membershipId: mMercy.id });
-  await appt({ patientId: ngozi.id, visitTypeId: followUp.id, startsAt: at(2, 15), durationMin: 30, status: "SCHEDULED", priceCents: 8075, pricingReason: "MEMBER_RATE", membershipId: mNgozi.id });
+  await appt({ patientId: ngozi.id, visitTypeId: followUp.id, startsAt: at(2, 15), durationMin: 30, status: "SCHEDULED", priceCents: 0, pricingReason: "INCLUDED", usesAllowance: true, membershipId: mNgozi.id });
   const mercyPast = await appt({ patientId: mercy.id, visitTypeId: followUp.id, startsAt: at(-1, 14), durationMin: 30, status: "COMPLETED", priceCents: 9500, pricingReason: "STANDARD" });
   const ngoziPast = await appt({ patientId: ngozi.id, visitTypeId: initial.id, startsAt: at(-30, 15), durationMin: 60, status: "COMPLETED", priceCents: 18000, pricingReason: "STANDARD" });
   const tundePast = await appt({ patientId: tunde.id, visitTypeId: initial.id, startsAt: at(-60, 16), durationMin: 60, status: "COMPLETED", priceCents: 18000, pricingReason: "STANDARD" }, CDT, "US-TX");
@@ -226,11 +226,11 @@ async function main() {
   await pay({ patientId: adaeze.id, kind: "VISIT", status: "PAID", currency: "NGN", amountCents: ngn(18000), description: "Initial consultation", note: "Pay per visit", paymentMethodId: visa.id, appointmentId: aInitial.id, createdAt: plus(aInitial.startsAt, -2000) });
   await pay({ patientId: adaeze.id, kind: "VISIT", status: "PAID", currency: "NGN", amountCents: ngn(9500), description: "Follow-up visit", note: "Before joining Thrive", paymentMethodId: visa.id, appointmentId: aFollow.id, createdAt: plus(aFollow.startsAt, -2000) });
   await pay({ patientId: adaeze.id, kind: "MEMBERSHIP", status: "PAID", currency: "NGN", amountCents: thrive.monthlyPriceNgn * 100, description: "Thrive monthly", note: "Card ending 4242", paymentMethodId: visa.id, membershipId: mAdaeze.id, createdAt: periodStart });
-  await pay({ patientId: tunde.id, kind: "MEMBERSHIP", status: "PAID", amountCents: 22900, description: "Family Focus monthly", paymentMethodId: tundePm.id, membershipId: mTunde.id, createdAt: periodStart });
+  await pay({ patientId: tunde.id, kind: "MEMBERSHIP", status: "PAID", amountCents: thrive.monthlyPriceCents, description: "Thrive monthly", paymentMethodId: tundePm.id, membershipId: mTunde.id, createdAt: periodStart });
   await pay({ patientId: tunde.id, kind: "VISIT", status: "PAID", amountCents: 11900, description: "Coaching · member rate", paymentMethodId: tundePm.id, createdAt: at(-2, 9) });
   await pay({ patientId: mercy.id, kind: "MEMBERSHIP", status: "PAID", currency: "NGN", amountCents: thrive.monthlyPriceNgn * 100, description: "Thrive monthly", paymentMethodId: mercyPm.id, membershipId: mMercy.id, createdAt: at(-1, 8) });
   await pay({ patientId: chidi.id, kind: "VISIT", status: "PAID", amountCents: 18000, description: "Initial consultation", paymentMethodId: chidiPm.id, appointmentId: cToday.id, createdAt: at(-1, 11) });
-  await pay({ patientId: ngozi.id, kind: "MEMBERSHIP", status: "PAID", currency: "NGN", amountCents: connect.monthlyPriceNgn * 100, description: "Connect monthly", paymentMethodId: ngoziPm.id, membershipId: mNgozi.id, createdAt: at(-2, 7) });
+  await pay({ patientId: ngozi.id, kind: "MEMBERSHIP", status: "PAID", currency: "NGN", amountCents: thrive.monthlyPriceNgn * 100, description: "Thrive monthly", paymentMethodId: ngoziPm.id, membershipId: mNgozi.id, createdAt: at(-2, 7) });
   const chidiCancel = await pay({ patientId: chidi.id, kind: "VISIT", status: "REFUNDED", amountCents: 9500, refundedCents: 9500, description: "Follow-up visit", paymentMethodId: chidiPm.id, createdAt: at(-6, 9) });
   await db.refund.create({ data: { paymentId: chidiCancel.id, amountCents: 9500, reason: "Cancelled more than 12 hours before", reference: `RF-${now.getFullYear()}-0091`, createdAt: at(-5, 9) } });
   void tToday;
@@ -297,11 +297,11 @@ async function main() {
   await n(adaeze.id, { category: "VISITS", title: "Visit reminder", body: `Follow-up with Dr. Oparaji · ${formatInTimeZone(aNext.startsAt, WAT, "EEE d MMM, h:mm a")} WAT`, href: "/portal/visits", createdAt: now });
   await n(adaeze.id, { category: "MESSAGES", title: "New message", body: "Dr. Oparaji: “Of course. I will add it to your agenda.”", href: "/portal/messages", createdAt: new Date(now.getTime() - 49 * 3600_000) });
   await n(adaeze.id, { category: "CARE_PLANS", title: "Care plan published", body: "Follow-up", href: `/portal/care-plans/${plan30.id}`, createdAt: plus(aFollow.endsAt, 90), readAt: now });
-  await n(adaeze.id, { category: "BILLING", title: "Payment received", body: "Thrive monthly · $129.00", href: "/portal/billing", createdAt: periodStart, readAt: now });
+  await n(adaeze.id, { category: "BILLING", title: "Payment received", body: "Thrive monthly · ₦200,000", href: "/portal/billing", createdAt: periodStart, readAt: now });
   await n(adaeze.id, { category: "VISITS", title: "Visit completed", body: "Follow-up", href: "/portal/visits", createdAt: aFollow.endsAt, readAt: now });
   await n(doctor.id, { category: "MESSAGES", title: "New message from Adaeze N.", body: "“Can we go over snacks…”", href: "/doctor/messages", createdAt: new Date(now.getTime() - 2 * 3600_000) });
-  await n(doctor.id, { category: "VISITS", title: "Booking confirmed", body: "Tunde B. · Family coaching · today 2:00 PM", href: "/doctor/appointments", createdAt: new Date(now.getTime() - 3 * 3600_000) });
-  await n(doctor.id, { category: "PAYMENTS", title: "Payment received", body: "Tunde Bello · Family coaching", amount: "$119.00", href: "/doctor/earnings", createdAt: new Date(now.getTime() - 3 * 3600_000) });
+  await n(doctor.id, { category: "VISITS", title: "Booking confirmed", body: "Tunde B. · Follow-up · today 2:00 PM", href: "/doctor/appointments", createdAt: new Date(now.getTime() - 3 * 3600_000) });
+  await n(doctor.id, { category: "PAYMENTS", title: "Payment received", body: "Tunde Bello · Thrive monthly", amount: "$149.00", href: "/doctor/earnings", createdAt: new Date(now.getTime() - 3 * 3600_000) });
   await n(doctor.id, { category: "VISITS", title: "Visit cancelled", body: "Chidi O. cancelled a follow-up · refunded $95.00", href: "/doctor/appointments", createdAt: new Date(now.getTime() - 26 * 3600_000), readAt: now });
   await n(doctor.id, { category: "INQUIRIES", title: "New inquiry", body: "Ife A. asked about family coaching", href: "/doctor/inquiries", createdAt: new Date(now.getTime() - 27 * 3600_000), readAt: now });
   await n(doctor.id, { category: "CARE_PLANS", title: "Care plan draft saved", body: "Mercy Adeyemi · Follow-up", href: "/doctor/patients", createdAt: new Date(now.getTime() - 4 * day), readAt: now });

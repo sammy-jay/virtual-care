@@ -29,6 +29,7 @@ export default async function MembershipPage() {
       <Container className="pt-20 md:pt-[110px]">
         <PlanCards plans={plans} currency={MARKETS[market].planCurrency} />
 
+        {plans.length > 1 && (
         <div className="mt-20 overflow-x-auto rounded-[28px] border border-[#E6E8EC]">
           <table className="w-full min-w-[640px] border-collapse text-[15.5px]">
             <thead>
@@ -55,15 +56,16 @@ export default async function MembershipPage() {
             </tbody>
           </table>
         </div>
+        )}
 
         <div className="mt-10 flex flex-wrap gap-5">
           <div className="flex-[1_1_340px] rounded-3xl bg-gold-tint p-8">
             <h3 className="font-display text-[26px] font-medium">Paying from Nigeria?</h3>
-            <p className="mt-2.5 text-[15.5px] text-body-2">Pay in naira by card or bank transfer. The amount is shown before you confirm, and receipts list both currencies.</p>
+            <p className="mt-2.5 text-[15.5px] text-body-2">Nigeria accounts pay a fixed monthly price in naira with a Nigerian card. The amount is shown before you confirm.</p>
           </div>
           <div className="flex-[1_1_340px] rounded-3xl bg-coral-tint p-8">
             <h3 className="font-display text-[26px] font-medium">Change your mind?</h3>
-            <p className="mt-2.5 text-[15.5px] text-body-2">Switch plans or cancel from your account at any time. Access continues until the end of the billing period.</p>
+            <p className="mt-2.5 text-[15.5px] text-body-2">{plans.length > 1 ? "Switch plans or cancel" : "Cancel"} from your account at any time. Access continues until the end of the billing period.</p>
           </div>
         </div>
         <p className="mt-[26px] text-center text-[13px] text-[#5A6272]">Prices are illustrative until confirmed by the practice.</p>

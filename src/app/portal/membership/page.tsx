@@ -33,6 +33,7 @@ export default async function PatientMembershipPage({ searchParams }: PageProps<
   const price = (p: (typeof plans)[number]) => (m?.currency === "NGN" ? p.monthlyPriceNgn * 100 : p.monthlyPriceCents);
   const cur = m?.currency ?? "USD";
   const followUp = types.find((t) => t.slug === "follow-up");
+  const switchable = m ? plans.filter((p) => p.id !== m.planId) : [];
 
   const PlanCard = ({ p }: { p: (typeof plans)[number] }) => {
     const mine = m?.planId === p.id;
@@ -112,15 +113,18 @@ export default async function PatientMembershipPage({ searchParams }: PageProps<
         </Card>
       ) : (
         <Alert tone="info" className="mb-5">
-          You pay per visit today. Join a plan for included visits, messaging all month and member pricing.
+          You pay per visit today. Members get {plans.length === 1 && plans[0].includedVisits ? `${plans[0].includedLabel ?? "a visit"} included each month` : "included visits"}, messaging all month and member pricing.
         </Alert>
       )}
 
-      <div id="plans" className="grid scroll-mt-24 gap-4 md:grid-cols-3">
-        {plans.map((p) => (
-          <PlanCard key={p.id} p={p} />
-        ))}
-      </div>
+      {/* Hidden when the member is already on the only plan on sale: the card above says it all. */}
+      {switchable.length > 0 || !m ? (
+        <div id="plans" className={cn("grid scroll-mt-24 gap-4", plans.length === 1 ? "max-w-[440px]" : "md:grid-cols-3")}>
+          {plans.map((p) => (
+            <PlanCard key={p.id} p={p} />
+          ))}
+        </div>
+      ) : null}
 
       <Card className="mt-5">
         <div className="mb-1 flex items-center justify-between">
@@ -139,9 +143,11 @@ export default async function PatientMembershipPage({ searchParams }: PageProps<
 
       {m && (
         <div className="mt-5 flex flex-wrap gap-3">
-          <ButtonLink href="#plans" variant="secondary">
-            Change plan
-          </ButtonLink>
+          {switchable.length > 0 && (
+            <ButtonLink href="#plans" variant="secondary">
+              Change plan
+            </ButtonLink>
+          )}
           {m.cancelAtPeriodEnd ? (
             <form action={resumeMembership}>
               <Button>Keep {m.plan.name}</Button>

@@ -66,7 +66,7 @@ export default async function BookPage({ searchParams }: PageProps<"/portal/book
   }
 
   const used = membership ? await allowanceUsed(membership, new Date()) : 0;
-  const thrive = plans.find((p) => p.popular);
+  const thrive = plans.find((p) => p.popular) ?? plans[0];
   const currency = user.market === "NG" ? "NGN" : "USD";
   const sideNote = membership
     ? membership.plan.includedVisits > 0

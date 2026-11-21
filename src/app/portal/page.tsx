@@ -2,7 +2,7 @@ import Link from "@/components/market";
 import type { Metadata } from "next";
 import { ButtonLink, Card, Eyebrow, Tag } from "@/components/ui";
 import { requirePatient } from "@/lib/auth/dal";
-import { allowanceUsed, getActiveMembership, getPlans, getVisitTypes, messagingAccess, unreadForPatient } from "@/lib/care";
+import { allowanceUsed, getActiveMembership, getPlans, getVisitTypes, messagingAccess, pricesFor, unreadForPatient } from "@/lib/care";
 import { db } from "@/lib/db";
 import { firstName, money, moneyShort } from "@/lib/format";
 import { profileSections } from "@/lib/profile";
@@ -35,11 +35,12 @@ export default async function OverviewPage() {
   // 05.2 — brand-new patient
   if (visitCount === 0 && !membership) {
     const followUp = types.find((t) => t.slug === "follow-up");
-    const connect = (await getPlans())[0];
+    const [offered, price] = await Promise.all([getPlans(), pricesFor(user.id)]);
+    const plan = offered[0];
     const steps = [
       ["Book your free intro call", "15 minutes by video, no card needed", "/portal/book?type=intro", "Book"],
       ["Complete your health profile", `${prof.pct}% complete · takes about 3 minutes`, "/portal/health-profile", prof.pct ? "Continue" : "Start"],
-      ["Choose how to pay for care", "Pay per visit, or join a plan for included visits", "/portal/membership", "View plans"],
+      ["Choose how to pay for care", offered.length > 1 ? "Pay per visit, or join a plan for included visits" : "Pay per visit, or become a member for an included visit each month", "/portal/membership", offered.length > 1 ? "View plans" : "View membership"],
     ];
     return (
       <div className="mx-auto max-w-[1140px]">
@@ -75,7 +76,7 @@ export default async function OverviewPage() {
               <Eyebrow>Plan</Eyebrow>
               <div className="mt-1.5 font-display text-2xl">Pay per visit</div>
               <p className="text-sm text-body">
-                Intro call is free. Follow-ups are {followUp ? moneyShort(followUp.priceCents) : "$95"}. Plans from {connect ? moneyShort(connect.monthlyPriceCents) : "$59"}/mo.
+                Intro call is free.{followUp ? ` Follow-ups are ${price.visit(followUp.priceCents)}.` : ""}{plan ? ` Membership ${offered.length > 1 ? "from " : "is "}${price.plan(plan)}/mo.` : ""}
               </p>
             </Card>
           </div>
@@ -166,9 +167,9 @@ export default async function OverviewPage() {
           ) : (
             <>
               <div className="mt-1.5 font-display text-2xl">Pay per visit</div>
-              <p className="text-sm text-body">Join a plan for included visits and messaging.</p>
+              <p className="text-sm text-body">Members get included visits and messaging all month.</p>
               <Link href="/membership" className="mt-3 inline-block text-sm font-bold text-forest">
-                See membership plans →
+                See membership →
               </Link>
             </>
           )}

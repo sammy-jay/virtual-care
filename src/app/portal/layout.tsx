@@ -63,7 +63,7 @@ export default async function PortalLayout({ children }: LayoutProps<"/portal">)
           <Link href="/membership" className="mb-3.5 block rounded-2xl bg-gold-tint px-4 py-3.5">
             <div className="text-[11px] font-extrabold uppercase tracking-[.14em] text-gold-ink">No plan</div>
             <div className="mt-1 text-sm font-bold">Pay per visit</div>
-            <div className="text-[12.5px] font-bold text-forest">See membership plans →</div>
+            <div className="text-[12.5px] font-bold text-forest">See membership →</div>
           </Link>
         )
       }

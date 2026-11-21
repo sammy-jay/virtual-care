@@ -4,7 +4,7 @@ import { Alert, Button, ButtonLink, Card, Eyebrow, StatusTag } from "@/component
 import { requireDoctor } from "@/lib/auth/dal";
 import { getPlans, getVisitTypes } from "@/lib/care";
 import { db } from "@/lib/db";
-import { money } from "@/lib/format";
+import { money, moneyShort } from "@/lib/format";
 import { memberRateCents } from "@/lib/pricing";
 import { fmt, listDateLabel, PRACTICE_TZ } from "@/lib/time";
 import { closeInquiry, replyInquiry } from "../../../actions";
@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Inquiry" };
 async function suggest(text: string) {
   const [types, plans] = await Promise.all([getVisitTypes(), getPlans()]);
   const t = text.toLowerCase();
-  const thrive = plans.find((p) => p.popular);
+  const thrive = plans.find((p) => p.popular) ?? plans[0];
   const coaching = types.find((v) => v.slug === "family-coaching");
   const covers = plans.filter((p) => coaching && p.includedVisitTypeIds.includes(coaching.id));
   if (/coach|family|husband|wife|together/.test(t) && coaching && thrive)
@@ -25,7 +25,14 @@ async function suggest(text: string) {
     const lic = await db.license.findMany({ where: { status: "ACTIVE" } });
     return `Dr. Oparaji sees patients located in ${lic.map((l) => l.regionName).join(" and ")}. Patients confirm their location when they book.`;
   }
-  if (/member|plan|pause|cancel/.test(t)) return `Plans start at ${money(plans[0]?.monthlyPriceCents ?? 0)}/mo. You can switch or cancel any time from your account; access continues to the end of the billing period.`;
+  if (/member|plan|pause|cancel/.test(t)) {
+    const end = "access continues to the end of the billing period.";
+    if (plans.length === 1) {
+      const p = plans[0];
+      return `Membership is ${moneyShort(p.monthlyPriceCents)}/mo, or ${moneyShort(p.monthlyPriceNgn * 100, "NGN")}/mo for patients in Nigeria${p.includedVisits ? `, with ${p.includedLabel ?? "a visit"} included each month` : ""}, secure messaging and ${p.discountPct}% off other visits. You can cancel any time from your account; ${end}`;
+    }
+    return `Plans start at ${money(plans[0]?.monthlyPriceCents ?? 0)}/mo. You can switch or cancel any time from your account; ${end}`;
+  }
   if (/insur|receipt/.test(t)) return "Every payment has a downloadable receipt with the visit type and date, which most insurers accept for reimbursement.";
   return null;
 }

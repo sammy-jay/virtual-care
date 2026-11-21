@@ -129,6 +129,11 @@ export function priceVisit({ visitType: vt, plan, allowanceUsed }: PricingInput)
   };
 }
 
+/** A plan's monthly price in the account's currency: its fixed naira price for Nigeria, dollars otherwise. */
+export function planPriceCents(p: { monthlyPriceCents: number; monthlyPriceNgn: number }, currency: "USD" | "NGN") {
+  return currency === "NGN" ? p.monthlyPriceNgn * 100 : p.monthlyPriceCents;
+}
+
 /**
  * Visit prices are set in dollars. Nigeria accounts pay in naira (Paystack), converted at the
  * practice's rate (Settings → ngnPerUsd) and rounded to the nearest ₦500. Amounts are in kobo.

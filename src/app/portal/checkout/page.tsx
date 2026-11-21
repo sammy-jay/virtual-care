@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Card, Eyebrow, Row } from "@/components/ui";
 import { requirePatient } from "@/lib/auth/dal";
-import { accountCurrency, getActiveMembership } from "@/lib/care";
+import { accountCurrency, getActiveMembership, getPlans } from "@/lib/care";
 import { db } from "@/lib/db";
 import { money } from "@/lib/format";
 import { providerFor } from "@/lib/payments";
@@ -15,8 +15,8 @@ export const metadata: Metadata = { title: "Checkout" };
 export default async function CheckoutPage({ searchParams }: PageProps<"/portal/checkout">) {
   const user = await requirePatient();
   const sp = await searchParams;
-  const plan = await db.plan.findUnique({ where: { slug: typeof sp.plan === "string" ? sp.plan : "thrive" } });
-  if (!plan) redirect("/membership");
+  const plan = typeof sp.plan === "string" ? await db.plan.findUnique({ where: { slug: sp.plan } }) : (await getPlans())[0];
+  if (!plan || !plan.active) redirect("/membership");
   if (await getActiveMembership(user.id)) redirect(`/portal/membership?dialog=switch&plan=${plan.slug}`);
   // Nigeria accounts pay the naira price through Paystack; everyone else pays dollars through Stripe.
   const cur = await accountCurrency(user.id);

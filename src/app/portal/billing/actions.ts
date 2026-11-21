@@ -63,7 +63,8 @@ export async function payForVisit(_: PayState, form: FormData): Promise<PayState
 export async function joinPlan(_: PayState, form: FormData): Promise<PayState> {
   const user = await requirePatient();
   const plan = await db.plan.findUnique({ where: { slug: String(form.get("plan")) } });
-  if (!plan) redirect("/membership");
+  // Plans taken off sale stay in the database for existing members, but nobody new can join them.
+  if (!plan || !plan.active) redirect("/membership");
   if (await getActiveMembership(user.id)) redirect("/portal/membership");
   const ngn = (await accountCurrency(user.id)) === "NGN";
   if (wantsHostedCheckout(form)) {
@@ -99,7 +100,7 @@ export async function switchPlan(form: FormData) {
   const user = await requirePatient();
   const m = await getActiveMembership(user.id);
   const to = await db.plan.findUnique({ where: { slug: String(form.get("plan")) } });
-  if (!m || !to || to.id === m.planId) redirect("/portal/membership");
+  if (!m || !to || !to.active || to.id === m.planId) redirect("/portal/membership");
   const ngn = m.currency === "NGN";
   const fromPrice = ngn ? m.plan.monthlyPriceNgn * 100 : m.plan.monthlyPriceCents;
   const toPrice = ngn ? to.monthlyPriceNgn * 100 : to.monthlyPriceCents;

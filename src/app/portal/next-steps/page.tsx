@@ -3,15 +3,14 @@ import type { Metadata } from "next";
 import { Icon } from "@/components/icons";
 import { ButtonLink } from "@/components/ui";
 import { requirePatient } from "@/lib/auth/dal";
-import { getPlans, getVisitTypes } from "@/lib/care";
-import { moneyShort } from "@/lib/format";
+import { getPlans, getVisitTypes, pricesFor } from "@/lib/care";
 
 export const metadata: Metadata = { title: "Next steps" };
 
 /** 04.10 — shown after the intro call. */
 export default async function NextStepsPage() {
-  await requirePatient();
-  const [types, plans] = await Promise.all([getVisitTypes(), getPlans()]);
+  const user = await requirePatient();
+  const [types, plans, price] = await Promise.all([getVisitTypes(), getPlans(), pricesFor(user.id)]);
   const initial = types.find((t) => t.slug === "initial-consultation");
   const followUp = types.find((t) => t.slug === "follow-up");
   const thrive = plans.find((p) => p.popular) ?? plans[0];
@@ -31,10 +30,10 @@ export default async function NextStepsPage() {
           <div className="eyebrow !text-muted">Pay per visit</div>
           <b className="mt-2 font-display text-[28px] font-normal">{initial?.name}</b>
           <p className="text-sm text-body">
-            {initial?.durationMin} min · {initial ? moneyShort(initial.priceCents) : ""} — pay only when you book
+            {initial?.durationMin} min · {initial ? price.visit(initial.priceCents) : ""} — pay only when you book
           </p>
           <ul className="my-5 flex flex-1 flex-col gap-2 text-[15px]">
-            {["Full history and goals review", "Written care plan after the visit", `Follow-ups ${followUp ? moneyShort(followUp.priceCents) : ""} each, no commitment`].map(tick)}
+            {["Full history and goals review", "Written care plan after the visit", `Follow-ups ${followUp ? price.visit(followUp.priceCents) : ""} each, no commitment`].map(tick)}
           </ul>
           <ButtonLink href="/portal/book?type=initial-consultation" variant="secondary">
             Book a paid consultation
@@ -45,7 +44,7 @@ export default async function NextStepsPage() {
             <span className="w-fit rounded-full bg-gold px-3 py-1 text-[12px] font-bold">Recommended</span>
             <div className="eyebrow mt-3">Membership</div>
             <b className="mt-2 font-display text-[28px] font-normal">
-              {thrive.name} · {moneyShort(thrive.monthlyPriceCents)}/mo
+              {thrive.name} · {price.plan(thrive)}/mo
             </b>
             <p className="text-sm text-body">{thrive.includedLabel} included each month</p>
             <ul className="my-5 flex flex-1 flex-col gap-2 text-[15px]">
@@ -56,9 +55,9 @@ export default async function NextStepsPage() {
         )}
       </div>
       <p className="mt-5 text-center text-sm text-body">
-        Compare all three plans —{" "}
+        {plans.length > 1 ? "Compare all plans — " : "Everything membership includes — "}
         <Link href="/membership" className="font-bold text-forest underline">
-          {plans.map((p) => p.name).join(", ")}
+          {plans.length > 1 ? plans.map((p) => p.name).join(", ") : "see the membership page"}
         </Link>
         .
       </p>

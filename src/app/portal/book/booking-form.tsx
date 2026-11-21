@@ -284,7 +284,7 @@ export function BookingForm({
               <p className={cn("mt-1 text-sm", sideNote.cta ? "text-sky-ink" : "text-sage-ink")}>{sideNote.body}</p>
               {sideNote.cta && (
                 <Link href="/membership" className="mt-2 inline-block text-sm font-bold text-forest">
-                  Compare plans
+                  About membership
                 </Link>
               )}
             </div>

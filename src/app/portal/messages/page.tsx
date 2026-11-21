@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { Composer, Thread } from "@/components/messages";
 import { Avatar, ButtonLink, Card, IconTile, PageTitle } from "@/components/ui";
 import { requirePatient } from "@/lib/auth/dal";
-import { getPlans, messagingAccess } from "@/lib/care";
+import { getPlans, messagingAccess, pricesFor } from "@/lib/care";
 import { db } from "@/lib/db";
-import { cn, moneyShort } from "@/lib/format";
+import { cn } from "@/lib/format";
 import { ensureDoctorConversation, loadThread, postMessage } from "@/lib/messaging";
 import { fmtShort, listDateLabel } from "@/lib/time";
 import { getMarketConfig } from "@/lib/market-server";
@@ -30,8 +30,8 @@ export default async function PatientMessagesPage({ searchParams }: PageProps<"/
   const access = await messagingAccess(user.id);
 
   if (!access.open) {
-    const plans = await getPlans();
-    const cheapest = plans[0];
+    const [plans, price] = await Promise.all([getPlans(), pricesFor(user.id)]);
+    const plan = plans[0];
     return (
       <div className="mx-auto max-w-[900px]">
         <Card className="text-center">
@@ -50,8 +50,12 @@ export default async function PatientMessagesPage({ searchParams }: PageProps<"/
             </ButtonLink>
           </Card>
           <Card className="!border-forest">
-            <b className="font-display text-2xl font-normal">Join a plan</b>
-            <p className="mt-1 text-sm text-body">From {cheapest ? moneyShort(cheapest.monthlyPriceCents) : "$59"}/mo with secure messaging all month. Thrive adds an included follow-up.</p>
+            <b className="font-display text-2xl font-normal">Become a member</b>
+            <p className="mt-1 text-sm text-body">
+              {plan
+                ? `${plan.name} is ${plans.length > 1 ? "from " : ""}${price.plan(plan)}/mo with secure messaging all month${plan.includedVisits ? ` and ${plan.includedLabel ?? "a visit"} included` : ""}.`
+                : "Secure messaging all month, plus member pricing on visits."}
+            </p>
             <ButtonLink href="/membership" className="mt-4">
               View membership
             </ButtonLink>

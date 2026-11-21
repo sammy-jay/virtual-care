@@ -2,7 +2,8 @@ import "server-only";
 import { cache } from "react";
 import type { Membership, Plan, VisitType } from "@prisma/client";
 import { db } from "@/lib/db";
-import { localizeQuote, priceVisit, type PricingResult } from "@/lib/pricing";
+import { moneyShort } from "@/lib/format";
+import { localizeQuote, planPriceCents, priceVisit, usdToNgnKobo, type PricingResult } from "@/lib/pricing";
 import { addMonths } from "@/lib/time";
 
 export const getPractice = cache(async () => {
@@ -67,6 +68,16 @@ export interface Quote extends PricingResult {
 export async function accountCurrency(patientId: string): Promise<"USD" | "NGN"> {
   const u = await db.user.findUnique({ where: { id: patientId }, select: { market: true } });
   return u?.market === "NG" ? "NGN" : "USD";
+}
+
+/** Prices formatted the way this patient pays: naira for Nigeria accounts (visit prices converted at the practice rate). */
+export async function pricesFor(patientId: string) {
+  const [currency, practice] = await Promise.all([accountCurrency(patientId), getPractice()]);
+  return {
+    currency,
+    plan: (p: Pick<Plan, "monthlyPriceCents" | "monthlyPriceNgn">) => moneyShort(planPriceCents(p, currency), currency),
+    visit: (usdCents: number) => moneyShort(currency === "NGN" ? usdToNgnKobo(usdCents, practice.ngnPerUsd) : usdCents, currency),
+  };
 }
 
 /** Price a visit for a patient at a given time — the only entry point booking screens use. */

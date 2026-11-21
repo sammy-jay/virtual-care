@@ -15,7 +15,8 @@
     "postinstall": "prisma generate",
     "db:local": "node scripts/local-mongo.mjs",
     "test:e2e": "playwright test",
-    "email:test": "tsx --env-file-if-exists=.env scripts/send-test-email.mts"
+    "email:test": "tsx --env-file-if-exists=.env scripts/send-test-email.mts",
+    "plans:apply": "tsx --env-file-if-exists=.env scripts/apply-plans.mts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
